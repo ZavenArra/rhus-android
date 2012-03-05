@@ -6,9 +6,11 @@
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
 	<classpathentry kind="lib" path="libs/couchbase-2.0.0-dp-31.jar"/>
 	<classpathentry kind="lib" path="libs/OtpErlang-r14b03.jar"/>
-	<classpathentry kind="lib" path="/Users/deepwinter1/Documents/eclipse-workspace-classic/Wildflowers/libs/org.ektorp.android-1.2.2.jar"/>
-	<classpathentry kind="lib" path="/Users/deepwinter1/Documents/eclipse-workspace-classic/Wildflowers/libs/org.ektorp-1.2.2.jar"/>
-	<classpathentry kind="lib" path="/Users/deepwinter1/Documents/eclipse-workspace-classic/Wildflowers/libs/jackson-mapper-asl-1.8.5.jar"/>
-	<classpathentry kind="lib" path="/Users/deepwinter1/Documents/eclipse-workspace-classic/Wildflowers/libs/jackson-core-asl-1.8.5.jar"/>
+	<classpathentry kind="lib" path="/Users/deepwinter1/Documents/eclipse-workspace-classic/Rhus/libs/org.ektorp.android-1.2.2.jar"/>
+	<classpathentry kind="lib" path="/Users/deepwinter1/Documents/eclipse-workspace-classic/Rhus/libs/org.ektorp-1.2.2.jar"/>
+	<classpathentry kind="lib" path="/Users/deepwinter1/Documents/eclipse-workspace-classic/Rhus/libs/jackson-mapper-asl-1.8.5.jar"/>
+	<classpathentry kind="lib" path="/Users/deepwinter1/Documents/eclipse-workspace-classic/Rhus/libs/jackson-core-asl-1.8.5.jar"/>
+	<classpathentry kind="lib" path="/Users/deepwinter1/Documents/eclipse-workspace-classic/lib/slf4j-1.6.4/slf4j-api-1.6.4.jar"/>
+	<classpathentry kind="lib" path="/Users/deepwinter1/Documents/eclipse-workspace-classic/lib/slf4j-1.6.4/slf4j-simple-1.6.4.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

@@ -8,7 +8,9 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 
+import net.winterroot.android.rhus.provider.RhusDocument;
 import net.winterroot.android.wildflowers.R;
 
 import org.codehaus.jackson.JsonNode;
@@ -35,12 +37,6 @@ public class RhusActivity extends Activity {
 
 	public static String TAG = "Rhus";
 
-	//constants
-	public static final String DATABASE_NAME = "rhus";
-	public static final String dDocId = "_design/rhus";
-	public static final String byDateViewName = "byDate";
-	public static final String byDateViewMapFunction = "function(doc) {if (doc.created_at) emit(doc.created_at, doc);}";
-
 	//splash screen
 	//protected SplashScreenDialog splashDialog;
 
@@ -48,25 +44,20 @@ public class RhusActivity extends Activity {
 	protected EditText addItemEditText;
 	protected ListView itemListView;
 	//protected GrocerySyncListAdapter itemListViewAdapter;
-
-	//couch internals
-	protected static ServiceConnection couchServiceConnection;
-	protected static HttpClient httpClient;
-
-	//ektorp impl
-	protected CouchDbInstance dbInstance;
-	protected CouchDbConnector couchDbConnector;
-	protected ReplicationCommand pushReplicationCommand;
-	protected ReplicationCommand pullReplicationCommand;
-
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        startCouchbase();
-        setContentView(R.layout.main);
+        
+    	Cursor documentsCursor = managedQuery(RhusDocument.CONTENT_URI, null,
+                null, null, null);
+    	
+    	Log.v("RHUS", "HELLE");
+    	System.out.println("HELLO WORLD");
+   //     startCouchbase();
+   //     setContentView(R.layout.main);
     }
-    
+    /*
     private final ICouchbaseDelegate couchCallbackHandler = new ICouchbaseDelegate() {
         public void couchbaseStarted(String host, int port) {
 			startEktorp(host, port);
@@ -127,7 +118,7 @@ public class RhusActivity extends Activity {
 		};
 		startupTask.execute();
 		*/
-	}
+	//}
 /*
 	public void startReplications() {
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
@@ -165,26 +156,17 @@ public class RhusActivity extends Activity {
 		pullReplication.execute();
 	}
 */
+/*
 	public void stopEktorp() {
 	}
 
-
+*/
     
     
     protected void onDestroy() {
 		Log.v(TAG, "onDestroy");
 
-		unbindService(couchServiceConnection);
 
-		//need to stop the async task thats following the changes feed
-		//itemListViewAdapter.cancelContinuous();
-
-		//clean up our http client connection manager
-		if(httpClient != null) {
-			httpClient.shutdown();
-		}
-
-		super.onDestroy();
 	}
 
     

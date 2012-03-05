@@ -18,12 +18,14 @@ import android.database.MatrixCursor;
 
 public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider {
 	
+	private static final String TAG = "RhusDocumentContentProvider";
+	
 	//TODO: This should be abstract??
     private static final String FILE_CACHE_DIR =
     		"/data/data/net.winterroot.net.android.rhus/file_cache";
     
-    private static String REPLICATION_URL = "http://ec2-50-112-24-87.us-west-2.compute.amazonaws.com";
-    private static String BUCKET_NAME = "items";
+    private static String REPLICATION_URL = "http://ec2-50-112-24-87.us-west-2.compute.amazonaws.com:5984/items";
+    private static String BUCKET_NAME = "documents";
 	
     private static final int DOCUMENTS = 1;			  //get all documents (possibly filtered)
     private static final int DOCUMENT_ID = 2;		  //get document by id
@@ -101,6 +103,7 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
 	
 	@Override
 	public String getReplicationUrl(){
+		Log.v(TAG, REPLICATION_URL);
 		return REPLICATION_URL;
 	}
 	

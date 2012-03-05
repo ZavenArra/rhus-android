@@ -34,11 +34,6 @@ abstract public class CouchbaseMobileContentProvider extends ContentProvider {
 
 	public static String TAG = "CouchbaseMobileContentProvider";
 	
-	//constants
-	//these should be removed or abstract functions
-	public static final String DATABASE_NAME = "grocery-sync";
-
-
 	//couch internals
 	protected static ServiceConnection couchServiceConnection;
 	protected static HttpClient httpClient;
@@ -94,22 +89,20 @@ abstract public class CouchbaseMobileContentProvider extends ContentProvider {
 	
 	protected void startCouch() {
     	System.out.println("Starting couch...");
-
-    	//getContext won't work until after onCreate, so we cache it locally..
-    	
 		CouchbaseMobile couch = new CouchbaseMobile(getContext(), couchCallbackHandler);
 
-		couchServiceConnection = couch.startCouchbase(); //could call with a ctx here.
+		couchServiceConnection = couch.startCouchbase();
 	}
 
 	
 	protected void startEktorp(String host, int port) {
-		Log.v(TAG, "starting ektorp");
+		Log.v(TAG, "starting ektorp "+host+port);
 
 		if(httpClient != null) {
 			httpClient.shutdown();
 		}
 
+		
 		httpClient =  new AndroidHttpClient.Builder().host(host).port(port).maxConnections(100).build();
 		dbInstance = new StdCouchDbInstance(httpClient);
 
@@ -143,6 +136,7 @@ abstract public class CouchbaseMobileContentProvider extends ContentProvider {
 			@Override
 			protected void onSuccess() {
 				Log.v(TAG, "Successful ekTorp startup");
+				startReplications();
 				initializationTask();
 			}
 		};
@@ -155,11 +149,11 @@ abstract public class CouchbaseMobileContentProvider extends ContentProvider {
 
 	
 	public void startReplications() {
-		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+		Log.v(TAG, "starting replications"+getReplicationUrl()+getBucketName());
 
 		pushReplicationCommand = new ReplicationCommand.Builder()
 			.source(getBucketName())
-			.target(prefs.getString("sync_url", getReplicationUrl()))
+			.target(getReplicationUrl())
 			.continuous(true)
 			.build();
 
@@ -174,7 +168,7 @@ abstract public class CouchbaseMobileContentProvider extends ContentProvider {
 		pushReplication.execute();
 
 		pullReplicationCommand = new ReplicationCommand.Builder()
-			.source(prefs.getString("sync_url", getReplicationUrl()))
+			.source(getReplicationUrl())
 			.target(getBucketName())
 			.continuous(true)
 			.build();

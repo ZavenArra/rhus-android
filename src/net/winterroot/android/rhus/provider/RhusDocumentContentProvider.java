@@ -2,15 +2,22 @@ package net.winterroot.android.rhus.provider;
 
 //import com.oreilly.demo.pa.finchvideo.provider.FileHandlerFactory;
 
+import org.ektorp.ViewQuery;
+import org.ektorp.ViewResult;
+import org.ektorp.ViewResult.Row;
+
+
+
 import net.winterroot.android.couchbasemobile.provider.CouchbaseMobileContentProvider;
 import net.winterroot.android.couchbasemobile.provider.CouchbaseMobileEktorpAsyncTask;
+import net.winterroot.android.couchbasemobile.provider.CouchCursor;
+
 import net.winterroot.android.rhus.*;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
-import android.test.mock.MockCursor;
 
 import android.net.Uri;
 import android.util.Log;
@@ -31,6 +38,9 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
     private static final int DOCUMENT_ID = 2;		  //get document by id
     private static final int DOCUMENT_THUMB_ID = 3;   //get document thumb by id
     private static final int DOCUMENT_IMAGE_ID = 4;   //get document image by id
+    
+    private static final String dDocId = "rhus";
+    private static final String allDocsMapFunction = "";
 
     private static UriMatcher sUriMatcher;
 	
@@ -86,8 +96,7 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
 
 	@Override
 	public String getType(Uri uri) {
-		// TODO Auto-generated method stub
-		return null;
+		return "vnd.android.cursor.dir/vnd.rhus.document";
 	}
 
 	@Override
@@ -119,7 +128,6 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
 				/*
 				//ensure we have a design document with a view
 				//update the design document if it exists, or create it if it does not exist
-				//This is handled by a callback from the extender
 				//TODO: change the below to be Rhus specific
 				try {
 					DesignDocument dDoc = couchDbConnector.get(DesignDocument.class, dDocId);
@@ -150,8 +158,9 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
 	public Cursor query(Uri uri, String[] projection, String selection,
 			String[] selectionArgs, String sortOrder) {
 
-	    MatrixCursor queryCursor;
+    	Log.v(TAG, "Content provider query");
 
+	    CouchCursor queryCursor = null;
 
 	    int match = sUriMatcher.match(uri);
 	    switch (match) {
@@ -159,14 +168,21 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
 	        	//This really shouldn't ever happen, or should be limited by default
 	        	//to avoid attempts to display a huge dataset
 	        	Log.v(TAG, "URI Query for all documents");
+//	        	ViewQuery viewQuery = new ViewQuery().designDocId(dDocId).viewName(byDateViewName).descending(true);
+	//        	ViewQuery viewQuery = new ViewQuery().allDocs();
+	        	//ViewResult result = couchDbConnector.queryView(viewQuery);
+
+	  //      	queryCursor = new CouchCursor(couchDbConnector, viewQuery);
 	        	break;
 	        	
 	    }
-    	System.out.println("This thing!");
-    	Log.v("whatever", "wahtever");
-    	queryCursor = new MatrixCursor(new String[] { "" });
-
-		return queryCursor;
+    	Log.v(TAG, "wahtever");
+   
+       	ViewQuery viewQuery = new ViewQuery().allDocs();
+    	//ViewResult result = couchDbConnector.queryView(viewQuery);
+	
+    	queryCursor = new CouchCursor(couchDbConnector, viewQuery);
+    	return queryCursor;
 	}
 
 	@Override

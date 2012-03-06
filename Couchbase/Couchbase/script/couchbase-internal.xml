@@ -1,0 +1,113 @@
+<project name="couchbase-internal" default="help">
+
+  <target name="help">
+    <echo>This build file should only be executed by couchbase.xml</echo>
+  </target>
+
+  <target name="_init">
+    <fail unless="project.path" message="Property project.path must be set"/>
+    <fail unless="couchbase.tmp.dir" message="Property couchbase.tmp.dir must be set"/>
+  </target>
+
+  <target name="manual" depends="_init, update-libaries,update-classpath,suggest-manifest">
+
+  </target>
+
+  <target name="update-libaries">
+    <!-- delete old couchbase jar -->
+    <delete quiet="true">
+      <fileset dir="${project.path}/libs" includes="couchbase*.jar"/>
+      <fileset dir="${project.path}/libs" includes="OtpErlang*.jar"/>
+    </delete>
+    <unzip dest="${project.path}" src="${couchbase.tmp.dir}/overlay.zip"/>
+  </target>	
+  
+	<target name="update-classpath-otp">
+		<!-- backup existing .classpath -->
+		<copy file="${project.path}/.classpath" tofile="${project.path}/.classpath.orig3"/>
+		<xslt style="${couchbase.tmp.dir}/Couchbase/script/classpath.otp.xsl" in="${project.path}/.classpath.orig3" out="${project.path}/.classpath"/>
+        </target>
+	
+	<target name="update-classpath-couchbase">
+		<!-- backup existing .classpath -->
+		<copy file="${project.path}/.classpath" tofile="${project.path}/.classpath.orig2"/>
+		<xslt style="${couchbase.tmp.dir}/Couchbase/script/classpath.couchbase.xsl" in="${project.path}/.classpath.orig2" out="${project.path}/.classpath"/>
+	</target>	
+	
+	<target name="update-classpath" depends="update-classpath-couchbase, update-classpath-otp">
+		<delete file="${project.path}/.classpath.orig2"/>
+		<delete file="${project.path}/.classpath.orig3"/>
+	</target>
+	
+	<!-- Permissions -->
+	
+	<target name="suggest-manifest-permissions" depends="suggest-manifest-permission.ACCESS_NETWORK_STATE,suggest-manifest-permission.INTERNET,suggest-manifest-permission.WRITE_EXTERNAL_STORAGE">
+
+	</target>
+	
+	<target name="suggest-manifest-permission.ACCESS_NETWORK_STATE"
+			depends="check-manifest-permission.ACCESS_NETWORK_STATE"
+			unless="permission.ACCESS_NETWORK_STATE">
+		<!-- backup existing AndroidManifest.xml -->
+		<copy file="${project.path}/AndroidManifest.xml" tofile="${project.path}/AndroidManifest.xml.orig.p1"/>
+		<xslt style="${couchbase.tmp.dir}/Couchbase/script/permission-ACCESS_NETWORK_STATE.xsl" in="${project.path}/AndroidManifest.xml.orig.p1" out="${project.path}/AndroidManifest.xml" force="true"/>
+	</target>		
+	
+	<target name="check-manifest-permission.ACCESS_NETWORK_STATE">
+		<condition property="permission.ACCESS_NETWORK_STATE">
+			<resourcecontains resource="${project.path}/AndroidManifest.xml" substring="android.permission.ACCESS_NETWORK_STATE"/>
+		</condition>
+	</target>
+	
+	<target name="suggest-manifest-permission.INTERNET"
+			depends="check-manifest-permission.INTERNET"
+			unless="permission.INTERNET">
+		<!-- backup existing AndroidManifest.xml -->
+		<copy file="${project.path}/AndroidManifest.xml" tofile="${project.path}/AndroidManifest.xml.orig.p2"/>
+		<xslt style="${couchbase.tmp.dir}/Couchbase/script/permission-INTERNET.xsl" in="${project.path}/AndroidManifest.xml.orig.p2" out="${project.path}/AndroidManifest.xml" force="true"/>
+	</target>		
+	
+	<target name="check-manifest-permission.INTERNET">
+		<condition property="permission.INTERNET">
+			<resourcecontains resource="${project.path}/AndroidManifest.xml" substring="android.permission.INTERNET"/>
+		</condition>
+	</target>
+	
+	<target name="suggest-manifest-permission.WRITE_EXTERNAL_STORAGE"
+			depends="check-manifest-permission.WRITE_EXTERNAL_STORAGE"
+			unless="permission.WRITE_EXTERNAL_STORAGE">
+		<!-- backup existing AndroidManifest.xml -->
+		<copy file="${project.path}/AndroidManifest.xml" tofile="${project.path}/AndroidManifest.xml.orig.p3"/>
+		<xslt style="${couchbase.tmp.dir}/Couchbase/script/permission-WRITE_EXTERNAL_STORAGE.xsl" in="${project.path}/AndroidManifest.xml.orig.p3" out="${project.path}/AndroidManifest.xml" force="true"/>
+	</target>		
+			
+	<target name="check-manifest-permission.WRITE_EXTERNAL_STORAGE">
+		<condition property="permission.WRITE_EXTERNAL_STORAGE">
+			<resourcecontains resource="${project.path}/AndroidManifest.xml" substring="android.permission.WRITE_EXTERNAL_STORAGE"/>
+		</condition>
+	</target>
+	
+	<!-- Service -->
+	<target name="suggest-manifest-service"
+			depends="check-manifest-service"
+			unless="service.couch.exists">
+		<!-- backup existing AndroidManifest.xml -->
+		<copy file="${project.path}/AndroidManifest.xml" tofile="${project.path}/AndroidManifest.xml.orig.cs"/>
+		<xslt style="${couchbase.tmp.dir}/Couchbase/script/couchbase-service.xsl" in="${project.path}/AndroidManifest.xml.orig.cs" out="${project.path}/AndroidManifest.xml" force="true"/>
+	</target>		
+	
+	<target name="check-manifest-service">
+		<condition property="service.couch.exists">
+			<resourcecontains resource="${project.path}/AndroidManifest.xml" substring="com.couchbase.android.CouchbaseService"/>
+		</condition>
+	</target>
+	
+	<!-- Manifest -->
+	<target name="suggest-manifest" depends="suggest-manifest-permissions,suggest-manifest-service">
+		 <delete file="${project.path}/AndroidManifest.xml.orig.p1"/>
+		 <delete file="${project.path}/AndroidManifest.xml.orig.p2"/>
+		 <delete file="${project.path}/AndroidManifest.xml.orig.p3"/>
+		 <delete file="${project.path}/AndroidManifest.xml.orig.cs"/>
+	</target>
+
+</project>

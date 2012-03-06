@@ -2,6 +2,7 @@ package net.winterroot.android.rhus.test;
 
 import net.winterroot.android.rhus.provider.RhusDocument;
 import net.winterroot.android.rhus.provider.RhusDocumentContentProvider;
+import net.winterroot.android.wildflowers.WildflowersActivity;
 
 import com.xtremelabs.robolectric.RobolectricTestRunner;
 import org.junit.Test;
@@ -14,7 +15,6 @@ import android.database.Cursor;
 import android.app.Activity;
 import android.content.Context;
 
-import net.winterroot.net.android.wildflowers.WildflowersActivity;
 
 
 

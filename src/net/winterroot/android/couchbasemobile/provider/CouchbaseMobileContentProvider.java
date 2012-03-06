@@ -35,23 +35,21 @@ abstract public class CouchbaseMobileContentProvider extends ContentProvider {
 	public static String TAG = "CouchbaseMobileContentProvider";
 	
 	//couch internals
-	protected static ServiceConnection couchServiceConnection;
+	protected static ServiceConnection couchServiceConnection = null;
 	protected static HttpClient httpClient;
 
 	//ektorp impl
-	protected CouchDbInstance dbInstance;
-	protected CouchDbConnector couchDbConnector;
+	protected CouchDbInstance dbInstance = null;
+	protected CouchDbConnector couchDbConnector = null;
 	protected ReplicationCommand pushReplicationCommand;
 	protected ReplicationCommand pullReplicationCommand;
-
-
-	//context setup for couchbase service
-    protected Context appContext = null;
 
 	@Override
 	public boolean onCreate() {
     	System.out.println("Starting couch");
-		startCouch();
+    	if(couchDbConnector == null){
+    		startCouch();
+    	}
 		return true;
 	}
 	
@@ -88,7 +86,7 @@ abstract public class CouchbaseMobileContentProvider extends ContentProvider {
 	
 	
 	protected void startCouch() {
-    	System.out.println("Starting couch...");
+    	Log.v(TAG, "Starting couch...");
 		CouchbaseMobile couch = new CouchbaseMobile(getContext(), couchCallbackHandler);
 
 		couchServiceConnection = couch.startCouchbase();
@@ -113,23 +111,6 @@ abstract public class CouchbaseMobileContentProvider extends ContentProvider {
 			protected void doInBackground() {
 
 				couchDbConnector = dbInstance.createConnector(getBucketName(), true);
-
-				/*
-				//ensure we have a design document with a view
-				//update the design document if it exists, or create it if it does not exist
-				//This is handled by a callback from the extender
-				try {
-					DesignDocument dDoc = couchDbConnector.get(DesignDocument.class, dDocId);
-					dDoc.addView("byDate", new DesignDocument.View(byDateViewMapFunction));
-					couchDbConnector.update(dDoc);
-				}
-				catch(DocumentNotFoundException ndfe) {
-					DesignDocument dDoc = new DesignDocument(dDocId);
-					dDoc.addView("byDate", new DesignDocument.View(byDateViewMapFunction));
-					couchDbConnector.create(dDoc);
-				}
-				*/
-				
 
 			}
 

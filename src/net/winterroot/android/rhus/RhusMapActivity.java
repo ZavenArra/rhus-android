@@ -130,7 +130,7 @@ public class RhusMapActivity extends MapActivity {
 		
 			int i = 0;
 			do {
-				Log.v(TAG, "Loading geopoint from cursor");
+				//Log.v(TAG, "Loading geopoint from cursor");
 			
 
 				String id = documentsCursor.getString(0);
@@ -138,8 +138,8 @@ public class RhusMapActivity extends MapActivity {
 					
 				JsonNode documentObject = mapper.readTree(document);
 
-				Log.v(TAG, document);
-				Log.v(TAG, id);
+				//Log.v(TAG, document);
+				//Log.v(TAG, id);
 
 				if(!loadedMapPoints.contains(id) && documentObject.get("latitude") != null ){
 					Log.v(TAG, "Adding geopoint from cursor");
@@ -151,10 +151,9 @@ public class RhusMapActivity extends MapActivity {
 					GeoPoint point2 = new GeoPoint(latitude, longitude);
 					OverlayItem overlayitem2 = new OverlayItem(point2, "NSup?", "I'm a plant or another piece of ecological data!"+id);
 					itemizedoverlay.addOverlay(overlayitem2);
-
+					loadedMapPoints.add(id);
+					Log.v(TAG, loadedMapPoints.toString());
 				}
-				loadedMapPoints.add(id);
-				Log.v(TAG, loadedMapPoints.toString());
 				i++;
 			} while(documentsCursor.moveToNext());
 

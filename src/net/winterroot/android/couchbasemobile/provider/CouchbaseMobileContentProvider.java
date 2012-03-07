@@ -43,18 +43,58 @@ abstract public class CouchbaseMobileContentProvider extends ContentProvider {
 	protected CouchDbConnector couchDbConnector = null;
 	protected ReplicationCommand pushReplicationCommand;
 	protected ReplicationCommand pullReplicationCommand;
-
-	@Override
-	public boolean onCreate() {
-    	System.out.println("Starting couch");
-    	if(couchDbConnector == null){
-    		startCouch();
-    	}
-		return true;
-	}
-	
+  
 	abstract public String getBucketName();
 	abstract public String getReplicationUrl();
+	
+	public Object sync;
+	
+	@Override
+	public boolean onCreate() {
+    	Log.v(TAG, "On Create Content Provider");
+    	//call ensure here and block with wait() in 2nd call to ensure from query, etc.
+    	//this would be the best
+    	
+    	sync = new Object();
+    	return true;
+
+	}
+	
+	//inelegant way to all the service to start synchronously
+	//since this shouldn't be on the UI thread.
+	private void waitMonitor(boolean wait){
+		 
+		synchronized(sync) {
+			if(wait){
+				try {
+					Log.v(TAG, "Waiting");
+					sync.wait();
+					Log.v(TAG, "Done Waiting");
+				} catch(InterruptedException e) {
+					System.out.println("InterruptedException caught");
+				} 
+			} else {
+				Log.v(TAG, "NOtify1");
+				sync.notify();
+			}
+		}
+	}
+
+
+	protected boolean ensureCouchServiceStarted(){
+		//Since this will be called asyncronously, will need an approach that pauses if the provider is currently starting up.
+		if(couchDbConnector == null){
+			Log.v(TAG, "Starting the couch... can i relax??");
+			CouchbaseMobile couch = new CouchbaseMobile(getContext(), couchCallbackHandler);
+
+			couchServiceConnection = couch.startCouchbase();
+
+			//essentially turning async launch into synchronous with onCreate().
+			waitMonitor(true);
+		}
+		return true;	
+
+	}
 
 	
     protected ICouchbaseDelegate couchCallbackHandler = new ICouchbaseDelegate() {
@@ -81,17 +121,9 @@ abstract public class CouchbaseMobileContentProvider extends ContentProvider {
 			Log.v(TAG, "got couch started " + host + " " + port);
 			//do we want to notify a creator somehow?
 			startEktorp(host, port);
+			waitMonitor(false);
 		}
 	};
-	
-	
-	protected void startCouch() {
-    	Log.v(TAG, "Starting couch...");
-		CouchbaseMobile couch = new CouchbaseMobile(getContext(), couchCallbackHandler);
-
-		couchServiceConnection = couch.startCouchbase();
-	}
-
 	
 	protected void startEktorp(String host, int port) {
 		Log.v(TAG, "starting ektorp "+host+port);
@@ -103,30 +135,37 @@ abstract public class CouchbaseMobileContentProvider extends ContentProvider {
 		
 		httpClient =  new AndroidHttpClient.Builder().host(host).port(port).maxConnections(100).build();
 		dbInstance = new StdCouchDbInstance(httpClient);
+		couchDbConnector = dbInstance.createConnector(getBucketName(), true);
+		startReplications();
+		initialization();
 
-
+		/* Changing this to synchronous task
 		CouchbaseMobileEktorpAsyncTask startupTask = new CouchbaseMobileEktorpAsyncTask() {
 
 			@Override
 			protected void doInBackground() {
-
-				couchDbConnector = dbInstance.createConnector(getBucketName(), true);
-
+		 */
+		/*
 			}
+		couchDbConnector = dbInstance.createConnector(getBucketName(), true);
 
 			@Override
 			protected void onSuccess() {
+								startReplications();
+		initializationTask();
 				Log.v(TAG, "Successful ekTorp startup");
-				startReplications();
-				initializationTask();
-			}
+
+		 */
+
+		/*	}
 		};
+
 		startupTask.execute();
-		
+		 */
 	}
 	
 	//perform any necessary initialization, view creation, etc.
-	public abstract void initializationTask();
+	public abstract void initialization();
 
 	
 	public void startReplications() {

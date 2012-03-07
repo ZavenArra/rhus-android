@@ -39,33 +39,36 @@ public class RhusActivity extends Activity {
         
 
     	
-    	Log.v("RHUS", "HELLE");
+    	Log.v(TAG, "onCreate");
     	System.out.println("HELLO WORLD");
-
+    	once = false;
     
     }
     
-    public static boolean once = false;
+    public static boolean once;
     
     @Override
     public void onStart(){
     	super.onStart();
-    	Log.v("Test", "Before");
+    	Log.v(TAG, "Before");
 
       /*  Intent i = new Intent();
         i.setClass(RhusActivity.this, TestActivity.class);
         startActivity(i);
     	Log.v("Test", "AFter Test Act");
 */
+    	
+    	/*
     	if(!once){
-        Intent i = new Intent();
-     //   i.setComponent( new ComponentName("net.winterroot.android.rhus", "net.winterroot.android.rhus.RhusMapActivity") );
-        i.setClass(RhusActivity.this, RhusMapActivity.class);
-        startActivity(i);
-    	Log.v("Test", "AFter Map Act");
-    	once = true;
+        	Log.v(TAG, "In the Once");
+    		Intent i = new Intent();
+    		i.setClass(RhusActivity.this, RhusMapActivity.class);
+    		startActivity(i);
+    		Log.v(TAG, "AFter Map Act");
+    		once = true;
     	}
-        
+    	*/
+    	
    
     }
     
@@ -75,6 +78,59 @@ public class RhusActivity extends Activity {
 		Log.v(TAG, "onDestroy");
 
 
+	}
+
+	@Override
+	protected void onRestart() {
+		super.onRestart();
+		// Notification that the activity will be started
+		Log.i(TAG, "onRestart");
+	}
+
+
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		// Notification that the activity will interact with the user
+		Log.i(TAG, "onResume");
+	}
+
+	protected void onPause() {
+		super.onPause();
+		// Notification that the activity will stop interacting with the user
+		Log.i(TAG, "onPause" + (isFinishing() ? " Finishing" : ""));
+	}
+
+	@Override
+	protected void onStop() {
+		super.onStop();
+		// Notification that the activity is no longer visible
+		Log.i(TAG, "onStop");
+	}
+
+
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		// Save instance-specific state
+	
+		super.onSaveInstanceState(outState);
+		Log.i(TAG, "onSaveInstanceState");
+
+	}
+
+	@Override
+	public Object onRetainNonConfigurationInstance() {
+		Log.i(TAG, "onRetainNonConfigurationInstance");
+		// It's not what
+		return new Integer(getTaskId());
+	}
+
+	@Override
+	protected void onRestoreInstanceState(Bundle savedState) {
+		super.onRestoreInstanceState(savedState);
+		Log.i(TAG, "onRestoreInstanceState"
+				);
 	}
 
     

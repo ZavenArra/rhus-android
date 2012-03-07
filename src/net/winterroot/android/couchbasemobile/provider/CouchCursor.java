@@ -6,6 +6,7 @@ import android.util.Log;
 import java.util.List;
 
 
+import org.codehaus.jackson.JsonNode;
 import org.ektorp.ViewQuery;
 import org.ektorp.ViewResult;
 import org.ektorp.ViewResult.Row; 
@@ -20,7 +21,7 @@ import org.ektorp.DbAccessException;
 public class CouchCursor extends MatrixCursor {
 	//TODO: remove MatrixCursor
 	
-	public static final String TAG = "CouchCursor";
+	public static final String TAG = "Rhus - CouchCursor";
 	
 	private CouchDbConnector dbConnector;
 	protected ViewQuery viewQuery;
@@ -34,11 +35,18 @@ public class CouchCursor extends MatrixCursor {
 	protected long lastUpdateView = -1L;
 	
 	public CouchCursor(CouchDbConnector setDbConnector, ViewQuery setViewQuery) {
-		super(new String[] {"_id","document"});
+		super(new String[] {"id","document"});
 		this.dbConnector = setDbConnector;
 		this.viewQuery = setViewQuery;
+		followChanges = true;
 		updateListItems();
 	}
+	
+	/*
+	public JsonNode getJsonNode(int i){
+		return super.get(i);
+	}
+	*/
 	
 	protected void updateListItems() {
 		Log.v(TAG, "Update List Items Task!");
@@ -46,6 +54,8 @@ public class CouchCursor extends MatrixCursor {
 		
 		//if we're not already in the process of updating the list, start a task to do so
 		if(updateListItemsTask == null) {
+			Log.v(TAG, "Creating the Update List Items Task!");
+
 
 			updateListItemsTask = new EktorpAsyncTask() {
 
@@ -63,33 +73,55 @@ public class CouchCursor extends MatrixCursor {
 					if(viewResult != null) {
 						lastUpdateView = viewResult.getUpdateSeq();
 						//listRows = viewResult.getRows();
+						Log.v(TAG, "Query Response!");
+
 						for(ViewResult.Row aRow : viewResult.getRows()){
-							
-							Object[] rowValues = new Object[] { aRow.getId(), aRow.getValueAsNode() };
+						//	Log.v(TAG, "Found an object"+aRow.getId());
+
+							Object[] rowValues = new Object[] { aRow.getId(), aRow.getValue() };
 							addRow(rowValues);
+						//	Log.v(TAG, "now with"+getCount());
+
 						}
+						Log.v(TAG, "Calling onChange() now with"+getCount());
 						onChange(true);
+						requery();
+
+					} else {
+						Log.v(TAG, "Null Query Response!");
+
 					}
 					updateListItemsTask = null;
 
-					//we want to start our changes feed AFTER
-					//getting our first copy of the view
-					if(couchChangesAsyncTask == null && followChanges) {
-						//create an ansyc task to get updates
-						ChangesCommand changesCmd = new ChangesCommand.Builder().since(lastUpdateView)
-								.includeDocs(false)
-								.continuous(true)
-								.heartbeat(5000)
-								.build();
+					
+					Log.v(TAG, "Settingup Changes Task "+Long.toString(lastUpdateView)+" : "+Long.toString(lastUpdateChangesFeed));
 
-						couchChangesAsyncTask = new CouchbaseListChangesAsyncTask(dbConnector, changesCmd);
-						couchChangesAsyncTask.execute();
+					if(lastUpdateView > 0) {
+						//we want to start our changes feed AFTER
+						//getting our first copy of the view
+						if(couchChangesAsyncTask == null && followChanges) {
+
+							//create an ansyc task to get updates
+							Log.v(TAG, "Actually making the task "+Long.toString(lastUpdateView)+" : "+Long.toString(lastUpdateChangesFeed));
+							//Should change to Changes Feed
+							//Ref: http://ektorp.org/javadoc/ektorp/1.2.2/org/ektorp/changes/ChangesFeed.html
+							//Ref: http://ektorp.org/reference_documentation.html#d100e1039
+							ChangesCommand changesCmd = new ChangesCommand.Builder().since(lastUpdateView)
+									.includeDocs(false)
+									.continuous(true)
+									.heartbeat(1000)
+									.build();
+
+							couchChangesAsyncTask = new CouchbaseListChangesAsyncTask(dbConnector, changesCmd);
+							couchChangesAsyncTask.execute();
+						}
 					}
 
-					if(lastUpdateChangesFeed > lastUpdateView) {
-				        Log.d("CouchCursor", "Finished, but still behind " + lastUpdateChangesFeed + " > " + lastUpdateView);
-						updateListItems();
-					}
+						if(lastUpdateChangesFeed > lastUpdateView) {
+							Log.d("CouchCursor", "Finished, but still behind " + lastUpdateChangesFeed + " > " + lastUpdateView);
+							updateListItems();
+						}
+					
 
 				}
 
@@ -110,13 +142,15 @@ public class CouchCursor extends MatrixCursor {
 		public CouchbaseListChangesAsyncTask(CouchDbConnector couchDbConnector,
 				ChangesCommand changesCommand) {
 			super(couchDbConnector, changesCommand);
+			Log.v(TAG, "Changes task setup");
+
 		}
 
 		@Override
 		protected void handleDocumentChange(DocumentChange change) {
+			Log.v(TAG, "Handle Document Change");
 			lastUpdateChangesFeed = change.getSequence();
-			updateListItems();   //This updates the list items
-								 //With the matrix cursor, we'll still have to notify the view rather that just handle it here.
+			updateListItems();   
 		}
 
 		@Override

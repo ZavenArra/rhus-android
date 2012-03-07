@@ -2,9 +2,11 @@ package net.winterroot.android.rhus.provider;
 
 //import com.oreilly.demo.pa.finchvideo.provider.FileHandlerFactory;
 
+import org.ektorp.DocumentNotFoundException;
 import org.ektorp.ViewQuery;
 import org.ektorp.ViewResult;
 import org.ektorp.ViewResult.Row;
+import org.ektorp.support.DesignDocument;
 
 
 
@@ -31,16 +33,17 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
     private static final String FILE_CACHE_DIR =
     		"/data/data/net.winterroot.net.android.rhus/file_cache";
     
-    private static String REPLICATION_URL = "http://ec2-50-112-24-87.us-west-2.compute.amazonaws.com:5984/items";
-    private static String BUCKET_NAME = "documents";
+    private static String REPLICATION_URL = "http://ec2-50-112-24-87.us-west-2.compute.amazonaws.com:5984/documents2";
+    private static String BUCKET_NAME = "documents2";
 	
     private static final int DOCUMENTS = 1;			  //get all documents (possibly filtered)
     private static final int DOCUMENT_ID = 2;		  //get document by id
     private static final int DOCUMENT_THUMB_ID = 3;   //get document thumb by id
     private static final int DOCUMENT_IMAGE_ID = 4;   //get document image by id
     
-    private static final String dDocId = "rhus";
-    private static final String allDocsMapFunction = "";
+    private static final String dDocId = "_design/rhus";
+	public static final String allDocsViewName = "all";
+    private static final String allDocsMapFunction = "function(doc) { emit(doc._id, doc);}";
 
     private static UriMatcher sUriMatcher;
 	
@@ -118,38 +121,30 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
 	
 
 	@Override
-	public void initializationTask(){
-		CouchbaseMobileEktorpAsyncTask initializationTask = new CouchbaseMobileEktorpAsyncTask(){
-			
-			@Override
-			protected void doInBackground() {
-				Log.v(TAG, "RHUS initialization");
+	public void initialization(){
 
-				/*
-				//ensure we have a design document with a view
-				//update the design document if it exists, or create it if it does not exist
-				//TODO: change the below to be Rhus specific
-				try {
-					DesignDocument dDoc = couchDbConnector.get(DesignDocument.class, dDocId);
-					dDoc.addView("byDate", new DesignDocument.View(byDateViewMapFunction));
-					couchDbConnector.update(dDoc);
-				}
-				catch(DocumentNotFoundException ndfe) {
-					DesignDocument dDoc = new DesignDocument(dDocId);
-					dDoc.addView("byDate", new DesignDocument.View(byDateViewMapFunction));
-					couchDbConnector.create(dDoc);
-				}
-				*/
-				
+		Log.v(TAG, "RHUS initialization");
 
-			}
 
-			@Override
-			protected void onSuccess() {
-				Log.v(TAG, "Finished RHUS initialization");
-			}
-		};
-		initializationTask.execute();
+		//ensure we have a design document with a view
+		//update the design document if it exists, or create it if it does not exist
+		//TODO: change the below to be Rhus specific
+		try {
+			DesignDocument dDoc = couchDbConnector.get(DesignDocument.class, dDocId);
+			dDoc.addView(allDocsViewName, new DesignDocument.View(allDocsMapFunction));
+			couchDbConnector.update(dDoc);
+		}
+		catch(DocumentNotFoundException ndfe) {
+			DesignDocument dDoc = new DesignDocument(dDocId);
+			dDoc.addView(allDocsViewName, new DesignDocument.View(allDocsMapFunction));
+			couchDbConnector.create(dDoc);
+		}
+
+
+
+
+		Log.v(TAG, "Finished RHUS initialization");
+
 	}
 
 
@@ -158,6 +153,8 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
 	public Cursor query(Uri uri, String[] projection, String selection,
 			String[] selectionArgs, String sortOrder) {
 
+		ensureCouchServiceStarted();
+		
     	Log.v(TAG, "Content provider query");
 
 	    CouchCursor queryCursor = null;
@@ -178,10 +175,13 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
 	    }
     	Log.v(TAG, "wahtever");
    
-       	ViewQuery viewQuery = new ViewQuery().allDocs();
+       	//ViewQuery viewQuery = new ViewQuery().allDocs();
+		ViewQuery viewQuery = new ViewQuery().designDocId(dDocId).viewName(allDocsViewName).updateSeq(true);
+
     	//ViewResult result = couchDbConnector.queryView(viewQuery);
 	
     	queryCursor = new CouchCursor(couchDbConnector, viewQuery);
+    	queryCursor.setNotificationUri(getContext().getContentResolver(), uri);
     	return queryCursor;
 	}
 

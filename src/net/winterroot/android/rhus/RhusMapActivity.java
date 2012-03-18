@@ -434,7 +434,10 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 				
 				
 				Bitmap thumb = resizeBitMapImage1(imageFile.getAbsolutePath(), 50, 50);
+				Log.d("BINARY", thumb.toString());
 				Bitmap medium = resizeBitMapImage1(imageFile.getAbsolutePath(), 320, 480);
+				Log.d(TAG, medium.toString());
+
 
 				ByteArrayOutputStream stream = new ByteArrayOutputStream() ;
 				thumb.compress(Bitmap.CompressFormat.JPEG, 100, stream);
@@ -444,7 +447,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 				thumb.compress(Bitmap.CompressFormat.JPEG, 100, stream2);
 			    byte[] mediumData = stream2.toByteArray();
 				
-				values.put("thumbnail", thumbData);
+				values.put("thumb", thumbData); ///??? why do we get a crash in insert() ???
 				values.put("medium", mediumData);
 				
 				//values.put()

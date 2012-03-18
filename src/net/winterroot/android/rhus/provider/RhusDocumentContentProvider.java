@@ -138,6 +138,8 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
 		ObjectNode documentNode = JsonNodeFactory.instance.objectNode();
 		documentNode.put("latitude", values.getAsDouble("latitude").toString() );
 		documentNode.put("longitude", values.getAsDouble("longitude").toString() );
+		documentNode.put("thumb-android0.1", JsonNodeFactory.instance.binaryNode(values.getAsByteArray("thumb")));
+		documentNode.put("medium-android0.1",JsonNodeFactory.instance.binaryNode(values.getAsByteArray("medium")));
 
 		//Skip matching the URI for the moment
 

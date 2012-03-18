@@ -75,6 +75,7 @@ public class CouchCursor extends MatrixCursor {
 						//listRows = viewResult.getRows();
 						Log.v(TAG, "Query Response!");
 
+            //This seems like it will get ALL the rows again, not just since the change
 						for(ViewResult.Row aRow : viewResult.getRows()){
 						//	Log.v(TAG, "Found an object"+aRow.getId());
 

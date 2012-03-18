@@ -2,11 +2,20 @@ package net.winterroot.android.rhus.provider;
 
 //import com.oreilly.demo.pa.finchvideo.provider.FileHandlerFactory;
 
+import java.io.IOException;
+
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.node.JsonNodeFactory;
+import org.codehaus.jackson.node.ObjectNode;
 import org.ektorp.DocumentNotFoundException;
+import org.ektorp.UpdateConflictException;
 import org.ektorp.ViewQuery;
 import org.ektorp.ViewResult;
 import org.ektorp.ViewResult.Row;
 import org.ektorp.support.DesignDocument;
+
 
 
 
@@ -16,6 +25,7 @@ import net.winterroot.android.couchbasemobile.provider.CouchCursor;
 
 import net.winterroot.android.rhus.*;
 
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.UriMatcher;
@@ -33,8 +43,8 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
     private static final String FILE_CACHE_DIR =
     		"/data/data/net.winterroot.net.android.rhus/file_cache";
     
-    private static String REPLICATION_URL = "http://ec2-50-112-24-87.us-west-2.compute.amazonaws.com:5984/documents2";
-    private static String BUCKET_NAME = "documents2";
+    private static String REPLICATION_URL = "http://data.winterroot.net:5984/squirrels_of_the_earth";
+    private static String BUCKET_NAME = "squirrels_of_the_earth";
 	
     private static final int DOCUMENTS = 1;			  //get all documents (possibly filtered)
     private static final int DOCUMENT_ID = 2;		  //get document by id
@@ -102,9 +112,58 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
 		return "vnd.android.cursor.dir/vnd.rhus.document";
 	}
 
-	@Override
+	/*
+	 * TODO:  This is a kludgey temporary workaround.  ContentProvider takes arguments of ContentValues, but it 
+	 * makes more sense to call with Json, or to provide a class for converting between Json and ContentValues objects
+	 * For the time being we just bypass the insert method.
+	 */
+	
 	public Uri insert(Uri uri, ContentValues values) {
-		// TODO Auto-generated method stub
+		
+		/*
+		final String saveItemString = values.getAsString("jsonNode");
+		ObjectMapper mapper = new ObjectMapper();
+		JsonNode saveItem = null;
+		try {
+			saveItem = mapper.readTree(saveItemString);
+		} catch (JsonProcessingException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		*/
+		
+		ObjectNode documentNode = JsonNodeFactory.instance.objectNode();
+		documentNode.put("latitude", values.getAsDouble("latitude").toString() );
+		documentNode.put("longitude", values.getAsDouble("longitude").toString() );
+
+		//Skip matching the URI for the moment
+
+		//Doing this synchronously - caller should call this content provider aynchronously.
+		
+		try {
+			couchDbConnector.create(documentNode);
+		} catch (UpdateConflictException e) {
+			Log.d(TAG, "Got an update conflict for: " + documentNode.toString());
+			return null;
+		}
+		
+		
+		//And then add the attachments
+		// ??
+		
+		Log.d(TAG, "Document created successfully");
+
+		long id = 0;  //Not the id!!
+		Log.d(TAG, "FIX: NOT THE ID");
+		Uri documentUri = ContentUris.withAppendedId(
+				RhusDocument.CONTENT_URI, id);
+		getContext().getContentResolver().notifyChange(documentUri, null);
+		
+		
+		//TODO: This should return the Content Provider Uri for the newly created item 
 		return null;
 	}
 	
@@ -176,7 +235,7 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
     	Log.v(TAG, "wahtever");
    
        	//ViewQuery viewQuery = new ViewQuery().allDocs();
-		ViewQuery viewQuery = new ViewQuery().designDocId(dDocId).viewName(allDocsViewName).updateSeq(true);
+      ViewQuery viewQuery = new ViewQuery().designDocId(dDocId).viewName(allDocsViewName).updateSeq(true);
 
     	//ViewResult result = couchDbConnector.queryView(viewQuery);
 	
@@ -191,5 +250,7 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
 		// TODO Auto-generated method stub
 		return 0;
 	}
+
+
 
 }

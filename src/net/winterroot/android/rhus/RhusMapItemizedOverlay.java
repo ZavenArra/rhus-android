@@ -16,11 +16,11 @@ public class RhusMapItemizedOverlay extends ItemizedOverlay {
 	private Context mContext;
 	
 	public RhusMapItemizedOverlay(Drawable defaultMarker) {
-		super(boundCenterBottom(defaultMarker));
+		super(boundCenterBottom(defaultMarker));	
 	}
 	
 	public RhusMapItemizedOverlay(Drawable defaultMarker, Context context) {
-		super(boundCenterBottom(defaultMarker));
+		super(boundCenterBottom(defaultMarker));		
 		mContext = context;
 	}
 

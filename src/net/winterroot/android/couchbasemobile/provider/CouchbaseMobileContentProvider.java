@@ -210,7 +210,6 @@ abstract public class CouchbaseMobileContentProvider extends ContentProvider {
 	//Shutdown connection to the couchDB service
 	public void shutdown(){
 		getContext().unbindService(couchServiceConnection);
-		
 		//clean up our http client connection manager
 		if(httpClient != null) {
 			httpClient.shutdown();

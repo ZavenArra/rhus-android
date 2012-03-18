@@ -1,5 +1,7 @@
 package net.winterroot.android.rhus;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,26 +23,46 @@ import com.google.android.maps.GeoPoint;
 import com.google.android.maps.Overlay;
 import com.google.android.maps.OverlayItem;
 
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.location.LocationProvider;
 
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.database.DataSetObserver;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.BitmapFactory.Options;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.Toast;
 import net.winterroot.android.wildflowers.R;
 import net.winterroot.android.rhus.provider.RhusDocument;
 
 
 
 
-public class RhusMapActivity extends MapActivity {
+public class RhusMapActivity extends MapActivity implements LocationListener {
 
+	protected static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 101;
+	
 	// Make strings for logging
 	private final String TAG = this.getClass().getSimpleName();
 	private final String RESTORE = ", can restore state";
@@ -50,8 +72,14 @@ public class RhusMapActivity extends MapActivity {
 	private final int fullLatitudeDelta = (int) (.05 * 1000000);
 	private final int fullLongitudeDelta = (int) (.05 * 1000000);
 	
-	// The string "fortytwo" is used as an example of state
-	private final String state = "fortytwo";
+	
+	//TODO:  imageUri is the current activity attribute, define and save it for later usage (also in onSaveInstanceState)
+	private Uri imageUri;
+	
+	private LocationManager locationManager;
+	private String bestProvider;
+	private Location lastLocation;
+	private Drawable marker;
 	
 	
 	//Maps
@@ -62,7 +90,7 @@ public class RhusMapActivity extends MapActivity {
 	boolean startedUpdates = false;
 	List<String> loadedMapPoints;
 
-	private class MyTask extends AsyncTask<RhusMapActivity, Void, Void> {
+	private class QueryMapPointsTask extends AsyncTask<RhusMapActivity, Void, Void> {
 
 
 		@Override
@@ -108,20 +136,10 @@ public class RhusMapActivity extends MapActivity {
 		
 		ObjectMapper mapper = new ObjectMapper();
 
-		//JsonFactory factory = mapper.getJsonFactory();
 
-		GeoPoint point = new GeoPoint(center.getLatitudeE6(), center.getLongitudeE6());
-		OverlayItem overlayitem = new OverlayItem(point, "Sup?", "I'm a plant or another piece of ecological data!");
-		itemizedoverlay.addOverlay(overlayitem);
-	
 
 		if(documentsCursor != null && documentsCursor.getCount()>0){
 			Log.v(TAG, "Reading from the cursor");
-
-
-			point = new GeoPoint(center.getLatitudeE6(), center.getLongitudeE6()+2000);
-			overlayitem = new OverlayItem(point, "Sup?", "I'm a plant or another piece of ecological data!"+Integer.toString(documentsCursor.getCount()));
-			itemizedoverlay.addOverlay(overlayitem);
 
 
 	
@@ -141,16 +159,29 @@ public class RhusMapActivity extends MapActivity {
 				//Log.v(TAG, document);
 				//Log.v(TAG, id);
 
+
 				if(!loadedMapPoints.contains(id) && documentObject.get("latitude") != null ){
-					Log.v(TAG, "Adding geopoint from cursor");
+					//Log.v(TAG, "Adding geopoint from cursor");
 
 
-					int latitude = (int) (documentObject.get("latitude").getDoubleValue()*1000000);					
-					int longitude = (int) (documentObject.get("longitude").getDoubleValue()*1000000);
+					int latitude = (int) (documentObject.get("latitude").getValueAsDouble()*1000000);					
+					int longitude = (int) (documentObject.get("longitude").getValueAsDouble()*1000000);
+					if(latitude == 0 && longitude == 0){
+						continue;
+					}
 
-					GeoPoint point2 = new GeoPoint(latitude, longitude);
-					OverlayItem overlayitem2 = new OverlayItem(point2, "NSup?", "I'm a plant or another piece of ecological data!"+id);
-					itemizedoverlay.addOverlay(overlayitem2);
+					GeoPoint point = new GeoPoint(latitude, longitude);
+					
+					OverlayItem overlayitem = new OverlayItem(point, "Geo-tagged at "+String.valueOf(latitude)+':'+String.valueOf(longitude), "");
+					Log.v(TAG, "Adding geopoint from cursor "+ documentObject.toString() );
+					Log.v(TAG, point.toString() );
+					Log.v(TAG, "Geo-tagged at "+String.valueOf(latitude)+':'+String.valueOf(longitude));
+
+
+					
+					//Log.v(TAG, marker.toString());
+					//overlayitem.setMarker(marker);
+					itemizedoverlay.addOverlay(overlayitem);
 					loadedMapPoints.add(id);
 					Log.v(TAG, loadedMapPoints.toString());
 				}
@@ -168,6 +199,11 @@ public class RhusMapActivity extends MapActivity {
 
 		Log.v(TAG, "onCreate");
 		
+		Resources res = getResources();
+
+		
+		startLocationUpdates();
+		
         setContentView(R.layout.map);
         mapView = (MapView) findViewById(R.id.mapmain);
         mapView.setBuiltInZoomControls(false);
@@ -178,13 +214,82 @@ public class RhusMapActivity extends MapActivity {
 		
    
 		Drawable drawable = this.getResources().getDrawable(R.drawable.ic_launcher);
+	//	marker = this.getResources().getDrawable(R.drawable.mappoint);
 		itemizedoverlay = new RhusMapItemizedOverlay(drawable, this);
     	
-        
+		//Wire up camera activity button
+		((ImageButton) findViewById(R.id.cameraButton)).setOnClickListener(
+				new OnClickListener(){
+
+					public void onClick(View arg0) {
+						//define the file-name to save photo taken by Camera activity
+						String fileName = "new-photo-name.jpg";
+						//create parameters for Intent with filename
+						ContentValues values = new ContentValues();
+						values.put(MediaStore.Images.Media.TITLE, fileName);
+						values.put(MediaStore.Images.Media.DESCRIPTION,"Image capture by camera");
+						//imageUri is the current activity attribute, define and save it for later usage (also in onSaveInstanceState)
+						imageUri = getContentResolver().insert(
+								MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+						//create new Intent
+						Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+						intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+						intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1);
+						startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
+
+						
+					}
+				}
+				);
+
+	}
+
+	@Override
+	protected void onRestart() {
+		super.onRestart();
+		// Notification that the activity will be started
+		Log.i(TAG, "onRestart");
+	}
+	
+	private void startLocationUpdates(){
+		Log.d("LOCATION", "Getting Location Service");
+		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+		Log.d("LOCATION", "Got Location Service");
+
+
+		// List all providers:
+		List<String> providers = locationManager.getAllProviders();
+		for (String provider : providers) {
+			LocationProvider info = locationManager.getProvider(provider);
+			Log.d("LOCATION", "huh"+info.toString() + "\n\n");
+		}
+
+		
+		Criteria criteria = new Criteria();
+		criteria.setAccuracy(Criteria.ACCURACY_FINE);
+		bestProvider = locationManager.getBestProvider(criteria, false);
+		Log.d("LOCATION", "Best Provider with criteria: "+bestProvider.toString() + "\n\n");
+
+		
+		Log.d("LOCATION", "Requesting location updates");
+		locationManager.requestLocationUpdates(bestProvider, 1000, 1, (LocationListener) this);
+
+	}
+
+	@Override
+	protected void onStart() {
+		super.onStart();
+		
+		Log.i("LOCATION", "onStart");
+
+		
+		        
         mapOverlays = mapView.getOverlays();
         
-        MyTask myTask = new MyTask();
-        myTask.execute(this);
+        
+        QueryMapPointsTask queryMapPointsTask = new QueryMapPointsTask();
+        queryMapPointsTask.execute(this);
+        
         
         try {
 			updateOverlays();
@@ -197,23 +302,9 @@ public class RhusMapActivity extends MapActivity {
 		}
         
 		
-	}
-	
-	
-	
-
-	@Override
-	protected void onRestart() {
-		super.onRestart();
-		// Notification that the activity will be started
-		Log.i(TAG, "onRestart");
-	}
-
-	@Override
-	protected void onStart() {
-		super.onStart();
+		
+		
 		// Notification that the activity is starting
-		Log.i(TAG, "onStart");
 	}
 
 	@Override
@@ -221,12 +312,19 @@ public class RhusMapActivity extends MapActivity {
 		super.onResume();
 		// Notification that the activity will interact with the user
 		Log.i(TAG, "onResume");
+		
+		Log.d("LOCATION", "Resuming location updates");
+		//locationManager.requestLocationUpdates(bestProvider, 1000, 1, (LocationListener) this);
+
 	}
 
 	protected void onPause() {
 		super.onPause();
 		// Notification that the activity will stop interacting with the user
 		Log.i(TAG, "onPause" + (isFinishing() ? " Finishing" : ""));
+		
+		Log.d("LOCATION", "Removing location updates");
+		//locationManager.removeUpdates( (LocationListener) this);
 	}
 
 	@Override
@@ -249,7 +347,6 @@ public class RhusMapActivity extends MapActivity {
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
 		// Save instance-specific state
-		outState.putString("answer", state);
 		super.onSaveInstanceState(outState);
 		Log.i(TAG, "onSaveInstanceState");
 
@@ -299,6 +396,165 @@ public class RhusMapActivity extends MapActivity {
      */
     @Override
     protected boolean isRouteDisplayed() { return false; }
+
+    
+    
+    /**
+     * Camera Activity Calls
+     */
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
+			if (resultCode == RESULT_OK && imageUri != null) {
+				
+				Log.i(TAG, imageUri.toString());
+				File imageFile = RhusMapActivity.convertImageUriToFile(imageUri, this);
+				Log.i(TAG, imageFile.toString());
+				
+				
+					
+			
+				ContentValues values = new ContentValues();
+				
+				//TODO: lastKnownLocation is probably not accurate enough, we should consider waiting for the next update
+				//or allow a user to review the geofix later if necessary.
+				//Location loc = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+				Location loc = lastLocation;
+				
+				if(loc == null){
+					Log.d(TAG, "Lst known location returned NULL, not saving this datapoint");
+					//TODO: Handle this exception somehow, probably by kicking them to a map where they can enter their location manually
+					//or allowing them to try to get a geofix again. 
+					return;
+				}
+				double latitude = loc.getLatitude();
+				double longitude = loc.getLongitude();
+				
+				values.put("latitude", latitude);
+				values.put("longitude", longitude);
+				
+				
+				Bitmap thumb = resizeBitMapImage1(imageFile.getAbsolutePath(), 50, 50);
+				Bitmap medium = resizeBitMapImage1(imageFile.getAbsolutePath(), 320, 480);
+
+				ByteArrayOutputStream stream = new ByteArrayOutputStream() ;
+				thumb.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+			    byte[] thumbData = stream.toByteArray();
+
+				ByteArrayOutputStream stream2 = new ByteArrayOutputStream() ;
+				thumb.compress(Bitmap.CompressFormat.JPEG, 100, stream2);
+			    byte[] mediumData = stream2.toByteArray();
+				
+				values.put("thumbnail", thumbData);
+				values.put("medium", mediumData);
+				
+				//values.put()
+				
+				//values.put("jsonNode", "{ \"latitude\":0, \"longitude\":-83 }");
+				
+				getContentResolver().insert(RhusDocument.CONTENT_URI, values);
+
+
+			} else if (resultCode == RESULT_CANCELED) {
+				Toast.makeText(this, "Picture was not taken", Toast.LENGTH_SHORT);
+			} else {
+				Toast.makeText(this, "Picture was not taken", Toast.LENGTH_SHORT);
+			}
+		}
+	}
+	
+	public static File convertImageUriToFile (Uri imageUri, Activity activity)  {
+		Cursor cursor = null;
+		try {
+			String [] proj={MediaStore.Images.Media.DATA, MediaStore.Images.Media._ID, MediaStore.Images.ImageColumns.ORIENTATION};
+			cursor = activity.managedQuery( imageUri,
+					proj, // Which columns to return
+					null,       // WHERE clause; which rows to return (all rows)
+					null,       // WHERE clause selection arguments (none)
+					null); // Order-by clause (ascending by name)
+			int file_ColumnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+			int orientation_ColumnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.ImageColumns.ORIENTATION);
+			if (cursor.moveToFirst()) {
+				String orientation =  cursor.getString(orientation_ColumnIndex);
+				return new File(cursor.getString(file_ColumnIndex));
+			}
+			return null;
+		} finally {
+			if (cursor != null) {
+				cursor.close();
+			}
+		}
+	}
+	
+	public static Bitmap resizeBitMapImage1(String filePath, int targetWidth,
+            int targetHeight) {
+        Bitmap bitMapImage = null;
+        // First, get the dimensions of the image
+        Options options = new Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(filePath, options);
+        double sampleSize = 0;
+        // Only scale if we need to
+        // (16384 buffer for img processing)
+        Boolean scaleByHeight = Math.abs(options.outHeight - targetHeight) >= Math
+                .abs(options.outWidth - targetWidth);
+
+        if (options.outHeight * options.outWidth * 2 >= 1638) {
+            // Load, scaling to smallest power of 2 that'll get it <= desired
+            // dimensions
+            sampleSize = scaleByHeight ? options.outHeight / targetHeight
+                    : options.outWidth / targetWidth;
+            sampleSize = (int) Math.pow(2d,
+                    Math.floor(Math.log(sampleSize) / Math.log(2d)));
+        }
+
+        // Do the actual decoding
+        options.inJustDecodeBounds = false;
+        options.inTempStorage = new byte[128];
+        while (true) {
+            try {
+                options.inSampleSize = (int) sampleSize;
+                bitMapImage = BitmapFactory.decodeFile(filePath, options);
+
+                break;
+            } catch (Exception ex) {
+                try {
+                    sampleSize = sampleSize * 2;
+                } catch (Exception ex1) {
+
+                }
+            }
+        }
+
+        return bitMapImage;
+    }
+
+	
+	//Location Listener Events
+	public void onLocationChanged(Location location) {
+		// TODO Auto-generated method stub
+		Log.i("LOCATION", "LocationChanged"+location.toString() );
+		Log.i("LOCATION", locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER).toString() );
+		lastLocation = location;
+		
+	}
+
+	public void onProviderDisabled(String provider) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void onProviderEnabled(String provider) {
+		// TODO Auto-generated method stub
+		Log.i(TAG, "Provider Enabled" );
+
+		
+	}
+
+	public void onStatusChanged(String provider, int status, Bundle extras) {
+		// TODO Auto-generated method stub
+		
+	}
+
 
 
 }

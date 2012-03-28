@@ -63,9 +63,8 @@ public class CouchCursor extends MatrixCursor {
 
 				@Override
 				protected void doInBackground() {
-					Log.v(TAG, "Running Background");
+					Log.v(TAG, "Running EKTorp Background");
 					viewResult = dbConnector.queryView(viewQuery);
-					
 				}
 
 				protected void onSuccess() {
@@ -75,7 +74,7 @@ public class CouchCursor extends MatrixCursor {
 						//listRows = viewResult.getRows();
 						Log.v(TAG, "Query Response!");
 
-            //This seems like it will get ALL the rows again, not just since the change
+						//This seems like it will get ALL the rows again, not just since the change
 						for(ViewResult.Row aRow : viewResult.getRows()){
 						//	Log.v(TAG, "Found an object"+aRow.getId());
 
@@ -84,7 +83,7 @@ public class CouchCursor extends MatrixCursor {
 						//	Log.v(TAG, "now with"+getCount());
 
 						}
-						Log.v(TAG, "Calling onChange() now with"+getCount());
+						Log.v(TAG, "Callinng onChange() now with"+getCount());
 						onChange(true);
 						requery();
 
@@ -126,11 +125,12 @@ public class CouchCursor extends MatrixCursor {
 
 				}
 
+				/*
 				@Override
 				protected void onDbAccessException(
 						DbAccessException dbAccessException) {
 					handleViewAsyncTaskDbAccessException(dbAccessException);
-				}
+				}*/
 
 			};
 

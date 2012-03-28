@@ -37,6 +37,8 @@ abstract public class CouchbaseMobileContentProvider extends ContentProvider {
 	//couch internals
 	protected static ServiceConnection couchServiceConnection = null;
 	protected static HttpClient httpClient;
+	protected static String host;
+	protected static int port;
 
 	//ektorp impl
 	protected CouchDbInstance dbInstance = null;
@@ -74,7 +76,7 @@ abstract public class CouchbaseMobileContentProvider extends ContentProvider {
 					System.out.println("InterruptedException caught");
 				} 
 			} else {
-				Log.v(TAG, "NOtify1");
+				Log.v(TAG, "Got Notified");
 				sync.notify();
 			}
 		}
@@ -82,6 +84,7 @@ abstract public class CouchbaseMobileContentProvider extends ContentProvider {
 
 
 	protected boolean ensureCouchServiceStarted(){
+		Log.v(TAG, "Ensuring couch service");
 		//Since this will be called asyncronously, will need an approach that pauses if the provider is currently starting up.
 		if(couchDbConnector == null){
 			Log.v(TAG, "Starting the couch... can i relax??");
@@ -91,7 +94,12 @@ abstract public class CouchbaseMobileContentProvider extends ContentProvider {
 
 			//essentially turning async launch into synchronous with onCreate().
 			waitMonitor(true);
-		}
+   		}
+		//When the application is destroyed and restarted, EKTorp needs to be restarted
+		//TODO: Find a way to detect a dead EKTorp, i.e. http client which is no longer connected.
+		//Reference here: http://stackoverflow.com/questions/9505358/android-httpclient-hangs-on-second-request-to-the-server-connection-timed-out
+		//Restarting HTTP client with every request is a suggested fix to other related problems.
+		startEktorp();
 		return true;	
 
 	}
@@ -117,15 +125,18 @@ abstract public class CouchbaseMobileContentProvider extends ContentProvider {
 			*/
 		}
 
-		public void couchbaseStarted(String host, int port) {
+		public void couchbaseStarted(String startupHost, int startupPort) {
+			host = startupHost;
+			port = startupPort;
 			Log.v(TAG, "got couch started " + host + " " + port);
 			//do we want to notify a creator somehow?
-			startEktorp(host, port);
+			//startEktorp(host, port);
+			startEktorp();
 			waitMonitor(false);
 		}
 	};
 	
-	protected void startEktorp(String host, int port) {
+	protected void startEktorp() {
 		Log.v(TAG, "starting ektorp "+host+port);
 
 		if(httpClient != null) {
@@ -209,6 +220,7 @@ abstract public class CouchbaseMobileContentProvider extends ContentProvider {
 	
 	//Shutdown connection to the couchDB service
 	public void shutdown(){
+		Log.v(TAG,  "Shutting down couchServiceConnection");
 		getContext().unbindService(couchServiceConnection);
 		//clean up our http client connection manager
 		if(httpClient != null) {

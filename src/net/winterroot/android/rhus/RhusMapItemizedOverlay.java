@@ -16,16 +16,25 @@ public class RhusMapItemizedOverlay extends ItemizedOverlay {
 	private Context mContext;
 	
 	public RhusMapItemizedOverlay(Drawable defaultMarker) {
-		super(boundCenterBottom(defaultMarker));	
+		super(boundCenterBottom(defaultMarker));
+		populate();
 	}
 	
 	public RhusMapItemizedOverlay(Drawable defaultMarker, Context context) {
 		super(boundCenterBottom(defaultMarker));		
 		mContext = context;
+		populate();
 	}
 
 	public void addOverlay(OverlayItem overlay) {
 	    mOverlays.add(overlay);
+	    setLastFocusedIndex(-1);
+	    populate();
+	}
+	
+	protected void removeOverlay(OverlayItem o){
+		mOverlays.remove(o);
+	    setLastFocusedIndex(-1);
 	    populate();
 	}
 	

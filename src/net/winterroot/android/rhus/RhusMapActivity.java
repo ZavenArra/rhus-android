@@ -83,7 +83,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 	
 	
 	//Maps
-	RhusMapItemizedOverlay itemizedoverlay;
+	RhusMapItemizedOverlay itemlizedOverlay;
 	List<Overlay> mapOverlays;
 	Cursor documentsCursor;
 	MapView mapView;
@@ -99,12 +99,22 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 			RhusMapActivity mapActivity = mapActivities[0];
 			documentsCursor = managedQuery(RhusDocument.CONTENT_URI, null,
 					null, null, null);
-			//Handler handler = new Handler(mapActivity);
+
 			documentsCursor.setNotificationUri(mapActivity.getBaseContext().getContentResolver(), RhusDocument.CONTENT_URI);
 			documentsCursor.registerDataSetObserver(new MapDataObserver());
-			Log.v(TAG, "Registered Observer");
-
 			return null;
+		}
+		
+		protected void onPostExecute(Void result) {
+			try {
+				updateOverlays();
+			} catch (JsonProcessingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 
 	}
@@ -129,78 +139,12 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 	
 	}
 	
-
-	
-	protected void updateOverlays() throws JsonProcessingException, IOException{
-		Log.v(TAG, "Updating Overlays");
-		
-		ObjectMapper mapper = new ObjectMapper();
-
-
-
-		if(documentsCursor != null && documentsCursor.getCount()>0){
-			Log.v(TAG, "Reading from the cursor");
-
-
-	
-			documentsCursor.moveToFirst();
-	
-		
-			int i = 0;
-			do {
-				//Log.v(TAG, "Loading geopoint from cursor");
-			
-
-				String id = documentsCursor.getString(0);
-				String document = documentsCursor.getString(1);
-					
-				JsonNode documentObject = mapper.readTree(document);
-
-				//Log.v(TAG, document);
-				//Log.v(TAG, id);
-
-
-				if(!loadedMapPoints.contains(id) && documentObject.get("latitude") != null ){
-					//Log.v(TAG, "Adding geopoint from cursor");
-
-
-					int latitude = (int) (documentObject.get("latitude").getValueAsDouble()*1000000);					
-					int longitude = (int) (documentObject.get("longitude").getValueAsDouble()*1000000);
-					if(latitude == 0 && longitude == 0){
-						continue;
-					}
-
-					GeoPoint point = new GeoPoint(latitude, longitude);
-					
-					OverlayItem overlayitem = new OverlayItem(point, "Geo-tagged at "+String.valueOf(latitude)+':'+String.valueOf(longitude), "");
-					Log.v(TAG, "Adding geopoint from cursor "+ documentObject.toString() );
-					Log.v(TAG, point.toString() );
-					Log.v(TAG, "Geo-tagged at "+String.valueOf(latitude)+':'+String.valueOf(longitude));
-
-
-					
-					//Log.v(TAG, marker.toString());
-					//overlayitem.setMarker(marker);
-					itemizedoverlay.addOverlay(overlayitem);
-					loadedMapPoints.add(id);
-					Log.v(TAG, loadedMapPoints.toString());
-				}
-				i++;
-			} while(documentsCursor.moveToNext());
-
-		}
-		mapOverlays.add(itemizedoverlay);
-		mapView.invalidate();
-	}
      
 	@Override
 	public void onCreate(Bundle savedState) {
 		super.onCreate(savedState);
 
 		Log.v(TAG, "onCreate");
-		
-		Resources res = getResources();
-
 		
 		startLocationUpdates();
 		
@@ -214,8 +158,8 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 		
    
 		Drawable drawable = this.getResources().getDrawable(R.drawable.ic_launcher);
-	//	marker = this.getResources().getDrawable(R.drawable.mappoint);
-		itemizedoverlay = new RhusMapItemizedOverlay(drawable, this);
+		//	marker = this.getResources().getDrawable(R.drawable.mappoint);
+		itemlizedOverlay = new RhusMapItemizedOverlay(drawable, this);
     	
 		//Wire up camera activity button
 		((ImageButton) findViewById(R.id.cameraButton)).setOnClickListener(
@@ -243,10 +187,84 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 				);
 
 	}
+	
+	@Override
+	protected void onStart() {
+		super.onStart();
+		
+		Log.i(TAG, "onStart");
+        
+        mapOverlays = mapView.getOverlays();
+
+        QueryMapPointsTask queryMapPointsTask = new QueryMapPointsTask();
+        queryMapPointsTask.execute(this);
+                
+        try {
+			updateOverlays();
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+ 	}
+	
+	protected void updateOverlays() throws JsonProcessingException, IOException{
+		Log.v(TAG, "Updating Overlays");
+		
+		ObjectMapper mapper = new ObjectMapper();
+
+
+		if(documentsCursor == null){
+			Log.v(TAG, "cursor is null");
+		}
+
+		if(documentsCursor != null && documentsCursor.getCount()>0){
+			Log.v(TAG, "Reading from the cursor");
+			documentsCursor.moveToFirst();
+			
+			int i = 0;
+			do {
+				Log.v(TAG, "Loading geopoint from cursor");
+				String id = documentsCursor.getString(0);
+				String document = documentsCursor.getString(1);	
+				JsonNode documentObject = mapper.readTree(document);
+
+				if(!loadedMapPoints.contains(id) && documentObject.get("latitude") != null ){
+					Log.v(TAG, "Adding geopoint from cursor");
+					int latitude = (int) (documentObject.get("latitude").getValueAsDouble()*1000000);					
+					int longitude = (int) (documentObject.get("longitude").getValueAsDouble()*1000000);
+					if(latitude == 0 && longitude == 0){
+						continue;
+					}
+
+					GeoPoint point = new GeoPoint(latitude, longitude);
+					
+					OverlayItem overlayItem = new OverlayItem(point, "Geo-tagged at "+String.valueOf(latitude)+':'+String.valueOf(longitude), "");
+					//Log.v(TAG, "Adding geopoint from cursor "+ documentObject.toString() );
+					//Log.v(TAG, point.toString() );
+					//Log.v(TAG, "Geo-tagged at "+String.valueOf(latitude)+':'+String.valueOf(longitude));
+
+					//Log.v(TAG, marker.toString());
+					//overlayItem.setMarker(marker);
+					itemlizedOverlay.addOverlay(overlayItem);
+					loadedMapPoints.add(id);
+					Log.v(TAG, loadedMapPoints.toString());
+				}
+				i++;
+			} while(documentsCursor.moveToNext());
+
+		}
+		mapOverlays.add(itemlizedOverlay);
+		mapView.invalidate();
+	}
+
 
 	@Override
 	protected void onRestart() {
 		super.onRestart();
+
 		// Notification that the activity will be started
 		Log.i(TAG, "onRestart");
 	}
@@ -274,37 +292,6 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 		Log.d("LOCATION", "Requesting location updates");
 		locationManager.requestLocationUpdates(bestProvider, 1000, 1, (LocationListener) this);
 
-	}
-
-	@Override
-	protected void onStart() {
-		super.onStart();
-		
-		Log.i("LOCATION", "onStart");
-
-		
-		        
-        mapOverlays = mapView.getOverlays();
-        
-        
-        QueryMapPointsTask queryMapPointsTask = new QueryMapPointsTask();
-        queryMapPointsTask.execute(this);
-        
-        
-        try {
-			updateOverlays();
-		} catch (JsonProcessingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-        
-		
-		
-		
-		// Notification that the activity is starting
 	}
 
 	@Override
@@ -348,6 +335,9 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 	protected void onSaveInstanceState(Bundle outState) {
 		// Save instance-specific state
 		super.onSaveInstanceState(outState);
+
+		//TODO: Save current zoom bounds
+		
 		Log.i(TAG, "onSaveInstanceState");
 
 	}
@@ -355,15 +345,15 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 	@Override
 	public Object onRetainNonConfigurationInstance() {
 		Log.i(TAG, "onRetainNonConfigurationInstance");
-		// It's not what
 		return new Integer(getTaskId());
 	}
 
 	@Override
 	protected void onRestoreInstanceState(Bundle savedState) {
 		super.onRestoreInstanceState(savedState);
-		Log.i(TAG, "onRestoreInstanceState"
-				+ (null == savedState ? "" : RESTORE) + " ");
+		
+		//TODO: Load last saved zoom bounds
+		
 	}
 
 	// ////////////////////////////////////////////////////////////////////////////
@@ -383,6 +373,8 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 	protected void onPostResume() {
 		super.onPostResume();
 		Log.i(TAG, "onPostResume");
+		
+
 	}
 
 	@Override

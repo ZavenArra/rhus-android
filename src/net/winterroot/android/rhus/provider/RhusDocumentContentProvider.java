@@ -44,7 +44,7 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
     		"/data/data/net.winterroot.net.android.rhus/file_cache";
     
     private static String REPLICATION_URL = "http://data.winterroot.net:5984/squirrels_of_the_earth";
-    private static String BUCKET_NAME = "squirrels_of_the_earth";
+    private static String BUCKET_NAME = "documents";
 	
     private static final int DOCUMENTS = 1;			  //get all documents (possibly filtered)
     private static final int DOCUMENT_ID = 2;		  //get document by id
@@ -237,7 +237,7 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
     	Log.v(TAG, "wahtever");
    
        	//ViewQuery viewQuery = new ViewQuery().allDocs();
-      ViewQuery viewQuery = new ViewQuery().designDocId(dDocId).viewName(allDocsViewName).updateSeq(true);
+    	ViewQuery viewQuery = new ViewQuery().designDocId(dDocId).viewName(allDocsViewName).updateSeq(true);
 
     	//ViewResult result = couchDbConnector.queryView(viewQuery);
 	

@@ -3,7 +3,7 @@
 	package="net.winterroot.android.wildflowers" android:versionCode="1"
 	android:versionName="1.0">
 
-	<uses-sdk android:minSdkVersion="10" />
+	<uses-sdk android:minSdkVersion="8" android:targetSdkVersion="8" />
 
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 	<uses-permission android:name="android.permission.INTERNET" />
@@ -27,7 +27,6 @@
 				<category android:name="android.intent.category.LAUNCHER" />
 			</intent-filter>
 		</activity>
-		
 		<activity android:name="net.winterroot.android.rhus.TestActivity">
 		</activity>
 		<provider

@@ -242,15 +242,14 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 					GeoPoint point = new GeoPoint(latitude, longitude);
 					
 					OverlayItem overlayItem = new OverlayItem(point, "Geo-tagged at "+String.valueOf(latitude)+':'+String.valueOf(longitude), "");
-					//Log.v(TAG, "Adding geopoint from cursor "+ documentObject.toString() );
-					//Log.v(TAG, point.toString() );
-					//Log.v(TAG, "Geo-tagged at "+String.valueOf(latitude)+':'+String.valueOf(longitude));
 
-					//Log.v(TAG, marker.toString());
-					//overlayItem.setMarker(marker);
+					Drawable pointMarker = this.getResources().getDrawable(R.drawable.mappoint);
+					pointMarker.setBounds(0, 0, pointMarker.getIntrinsicWidth(),pointMarker.getIntrinsicHeight()); 
+					Log.v(TAG, pointMarker.toString());
+					overlayItem.setMarker(pointMarker);
 					itemlizedOverlay.addOverlay(overlayItem);
 					loadedMapPoints.add(id);
-					Log.v(TAG, loadedMapPoints.toString());
+					//Log.v(TAG, loadedMapPoints.toString());
 				}
 				i++;
 			} while(documentsCursor.moveToNext());

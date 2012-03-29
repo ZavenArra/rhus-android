@@ -2,3 +2,4 @@ bin
 tmp
 Couchbase/
 *.DS_Store*
+.metadata

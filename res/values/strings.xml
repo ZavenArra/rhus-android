@@ -3,5 +3,6 @@
 
     <string name="hello">Hello World, WildflowersActivity!</string>
     <string name="app_name">Wildflowers</string>
+    <string name="note">Note</string>
 
 </resources>

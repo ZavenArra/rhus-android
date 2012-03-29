@@ -16,6 +16,8 @@ import org.codehaus.jackson.map.ObjectMapper;
 import net.winterroot.android.rhus.provider.RhusDocument;
 
 import android.app.Activity;
+
+import com.dogantekin.baloon.BaloonLayout;
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapView;
 import com.google.android.maps.MapController;
@@ -48,10 +50,13 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 import net.winterroot.android.wildflowers.R;
 import net.winterroot.android.rhus.provider.RhusDocument;
@@ -81,15 +86,32 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 	private Location lastLocation;
 	private Drawable marker;
 	
-	
 	//Maps
-	RhusMapItemizedOverlay itemlizedOverlay;
+	RhusMapItemizedOverlay itemizedOverlay;
 	List<Overlay> mapOverlays;
 	Cursor documentsCursor;
 	MapView mapView;
+	MapController mapController;
 	boolean startedUpdates = false;
 	List<String> loadedMapPoints;
+	BaloonLayout noteBaloon;
 
+	private class OverlayDelegate extends RhusMapItemizedOverlayDelegate{
+
+		@Override
+		public void onTap(GeoPoint geoPoint, OverlayItem noteOverlay) {
+
+			mapView.removeView(noteBaloon);
+			noteBaloon.setVisibility(View.VISIBLE);
+			((TextView)noteBaloon.findViewById(R.id.note_text)).setText("Sup Dog");
+			mapController.animateTo(geoPoint);
+			mapView.addView(noteBaloon, new MapView.LayoutParams(200,200,geoPoint,MapView.LayoutParams.BOTTOM_CENTER));
+			mapView.setEnabled(false);       
+
+		}
+				
+	}
+	
 	private class QueryMapPointsTask extends AsyncTask<RhusMapActivity, Void, Void> {
 
 
@@ -151,7 +173,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
         setContentView(R.layout.map);
         mapView = (MapView) findViewById(R.id.mapmain);
         mapView.setBuiltInZoomControls(false);
-        MapController mapController = mapView.getController();
+        mapController = mapView.getController();
         mapController.setCenter(center);
         mapController.zoomToSpan(fullLatitudeDelta, fullLongitudeDelta);
         loadedMapPoints = new ArrayList<String>();
@@ -159,7 +181,8 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
    
 		Drawable drawable = this.getResources().getDrawable(R.drawable.ic_launcher);
 		//	marker = this.getResources().getDrawable(R.drawable.mappoint);
-		itemlizedOverlay = new RhusMapItemizedOverlay(drawable, this);
+		itemizedOverlay = new RhusMapItemizedOverlay(drawable, this);
+		itemizedOverlay.setDelegate(new OverlayDelegate());
     	
 		//Wire up camera activity button
 		((ImageButton) findViewById(R.id.cameraButton)).setOnClickListener(
@@ -186,6 +209,13 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 				}
 				);
 
+	    LayoutInflater              layoutInflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        noteBaloon = (BaloonLayout) layoutInflater.inflate(R.layout.baloon, null);
+        RelativeLayout.LayoutParams layoutParams   = new RelativeLayout.LayoutParams(200,100);
+        layoutParams.addRule(RelativeLayout.CENTER_VERTICAL);
+        layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
+        noteBaloon.setLayoutParams(layoutParams);   
+		
 	}
 	
 	@Override
@@ -247,7 +277,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 					pointMarker.setBounds(0, 0, pointMarker.getIntrinsicWidth(),pointMarker.getIntrinsicHeight()); 
 					Log.v(TAG, pointMarker.toString());
 					overlayItem.setMarker(pointMarker);
-					itemlizedOverlay.addOverlay(overlayItem);
+					itemizedOverlay.addOverlay(overlayItem);
 					loadedMapPoints.add(id);
 					//Log.v(TAG, loadedMapPoints.toString());
 				}
@@ -255,7 +285,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 			} while(documentsCursor.moveToNext());
 
 		}
-		mapOverlays.add(itemlizedOverlay);
+		mapOverlays.add(itemizedOverlay);
 		mapView.invalidate();
 	}
 

@@ -49,7 +49,8 @@
             android:layout_height="50dp"
             android:layout_alignTop="@+id/note_text"
             android:layout_marginLeft="48dp"
-            android:layout_toRightOf="@+id/note_label" />
+            android:layout_toRightOf="@+id/note_label"
+            android:src="@drawable/test" />
 
     </RelativeLayout>
 </com.dogantekin.baloon.BaloonLayout>

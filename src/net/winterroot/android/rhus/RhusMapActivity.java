@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonNode;
@@ -49,6 +50,7 @@ import android.graphics.BitmapFactory.Options;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -96,6 +98,12 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 	boolean startedUpdates = false;
 	List<String> loadedMapPoints;
 	BaloonLayout noteBaloon;
+	
+	//Device
+	TelephonyManager tm;
+	String deviceId;
+
+
 
 	private class OverlayDelegate extends RhusMapItemizedOverlayDelegate{
 
@@ -228,6 +236,15 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
         			}
         		}
         		);
+       
+        tm = (TelephonyManager) getBaseContext().getSystemService(Context.TELEPHONY_SERVICE);
+    	String tmDevice, tmSerial, tmPhone, androidId;
+    	tmDevice = "" + tm.getDeviceId();
+    	tmSerial = "" + tm.getSimSerialNumber();
+    	androidId = "" + android.provider.Settings.Secure.getString(getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
+
+    	UUID deviceUuid = new UUID(androidId.hashCode(), ((long)tmDevice.hashCode() << 32) | tmSerial.hashCode());
+    	deviceId = "ANDROID"+deviceUuid.toString();
 	}
 	
 	@Override
@@ -285,7 +302,15 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 					
 					OverlayItem overlayItem = new RhusOverlayItem(point, id);
 
-					Drawable pointMarker = this.getResources().getDrawable(R.drawable.mappoint);
+					Drawable pointMarker;
+					JsonNode identifier = documentObject.get("deviceuser_identifier");
+					if( identifier!= null && documentObject.get("deviceuser_identifier").getValueAsText() == deviceId){
+						pointMarker = this.getResources().getDrawable(R.drawable.map_device_user_point);
+					} else {
+						pointMarker = this.getResources().getDrawable(R.drawable.mappoint);
+					}
+					
+					
 					pointMarker.setBounds(0, 0, pointMarker.getIntrinsicWidth(),pointMarker.getIntrinsicHeight()); 
 					Log.v(TAG, pointMarker.toString());
 					overlayItem.setMarker(pointMarker);
@@ -311,26 +336,26 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 	}
 	
 	private void startLocationUpdates(){
-		Log.d("LOCATION", "Getting Location Service");
+		Log.i("LOCATION", "Getting Location Service");
 		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-		Log.d("LOCATION", "Got Location Service");
+		Log.i("LOCATION", "Got Location Service");
 
 
 		// List all providers:
 		List<String> providers = locationManager.getAllProviders();
 		for (String provider : providers) {
 			LocationProvider info = locationManager.getProvider(provider);
-			Log.d("LOCATION", "huh"+info.toString() + "\n\n");
+			Log.i("LOCATION", "huh"+info.toString() + "\n\n");
 		}
 
 		
 		Criteria criteria = new Criteria();
 		criteria.setAccuracy(Criteria.ACCURACY_FINE);
 		bestProvider = locationManager.getBestProvider(criteria, false);
-		Log.d("LOCATION", "Best Provider with criteria: "+bestProvider.toString() + "\n\n");
+		Log.i("LOCATION", "Best Provider with criteria: "+bestProvider.toString() + "\n\n");
 
 		
-		Log.d("LOCATION", "Requesting location updates");
+		Log.i("LOCATION", "Requesting location updates");
 		locationManager.requestLocationUpdates(bestProvider, 1000, 1, (LocationListener) this);
 
 	}
@@ -341,7 +366,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 		// Notification that the activity will interact with the user
 		Log.i(TAG, "onResume");
 		
-		Log.d("LOCATION", "Resuming location updates");
+		Log.i("LOCATION", "Resuming location updates");
 		//locationManager.requestLocationUpdates(bestProvider, 1000, 1, (LocationListener) this);
 
 	}
@@ -351,7 +376,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 		// Notification that the activity will stop interacting with the user
 		Log.i(TAG, "onPause" + (isFinishing() ? " Finishing" : ""));
 		
-		Log.d("LOCATION", "Removing location updates");
+		Log.i("LOCATION", "Removing location updates");
 		//locationManager.removeUpdates( (LocationListener) this);
 	}
 
@@ -439,6 +464,8 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 		if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
 			if (resultCode == RESULT_OK && imageUri != null) {
 				
+				startLocationUpdates();
+				
 				Log.i(TAG, imageUri.toString());
 				File imageFile = RhusMapActivity.convertImageUriToFile(imageUri, this);
 				Log.i(TAG, imageFile.toString());
@@ -451,7 +478,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 				Location loc = lastLocation;
 				
 				if(loc == null){
-					Log.d(TAG, "Lst known location returned NULL, not saving this datapoint");
+					Log.i(TAG, "Lst known location returned NULL, not saving this datapoint");
 					//TODO: Handle this exception somehow, probably by kicking them to a map where they can enter their location manually
 					//or allowing them to try to get a geofix again. 
 					return;
@@ -464,9 +491,9 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 				
 				
 				Bitmap thumb = resizeBitMapImage1(imageFile.getAbsolutePath(), 50, 50);
-				Log.d("BINARY", thumb.toString());
+				Log.i("BINARY", thumb.toString());
 				Bitmap medium = resizeBitMapImage1(imageFile.getAbsolutePath(), 320, 480);
-				Log.d(TAG, medium.toString());
+				Log.i(TAG, medium.toString());
 
 
 				ByteArrayOutputStream stream = new ByteArrayOutputStream() ;
@@ -480,9 +507,12 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 				values.put("thumb", thumbData); ///??? why do we get a crash in insert() ???
 				values.put("medium", mediumData);
 				
+				values.put("deviceuser_identifier", deviceId);
+				
 				//values.put()
 				
 				//values.put("jsonNode", "{ \"latitude\":0, \"longitude\":-83 }");
+		
 				
 				getContentResolver().insert(RhusDocument.CONTENT_URI, values);
 

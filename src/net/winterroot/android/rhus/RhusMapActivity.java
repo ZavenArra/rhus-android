@@ -57,6 +57,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.ImageView;
 import android.widget.Toast;
 import net.winterroot.android.wildflowers.R;
 import net.winterroot.android.rhus.provider.RhusDocument;
@@ -104,12 +105,15 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 			mapView.removeView(noteBaloon);
 			noteBaloon.setVisibility(View.VISIBLE);
 			((TextView)noteBaloon.findViewById(R.id.note_text)).setText("Sup Dog");
+			//((ImageView)noteBaloon.findViewById(R.id.thumbnail)).s
+
 			mapController.animateTo(geoPoint);
 			mapView.addView(noteBaloon, new MapView.LayoutParams(200,200,geoPoint,MapView.LayoutParams.BOTTOM_CENTER));
-			mapView.setEnabled(false);       
+			//mapView.setEnabled(false);       
 
 		}
 				
+
 	}
 	
 	private class QueryMapPointsTask extends AsyncTask<RhusMapActivity, Void, Void> {
@@ -215,7 +219,15 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
         layoutParams.addRule(RelativeLayout.CENTER_VERTICAL);
         layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
         noteBaloon.setLayoutParams(layoutParams);   
-		
+        
+        ( (ImageButton) noteBaloon.findViewById(R.id.close_button)).setOnClickListener(
+        		new OnClickListener(){
+        			public void onClick(View arg0) {
+        				noteBaloon.setVisibility(View.GONE);                    
+        				mapView.setEnabled(true);    
+        			}
+        		}
+        		);
 	}
 	
 	@Override
@@ -271,7 +283,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 
 					GeoPoint point = new GeoPoint(latitude, longitude);
 					
-					OverlayItem overlayItem = new OverlayItem(point, "Geo-tagged at "+String.valueOf(latitude)+':'+String.valueOf(longitude), "");
+					OverlayItem overlayItem = new RhusOverlayItem(point, id);
 
 					Drawable pointMarker = this.getResources().getDrawable(R.drawable.mappoint);
 					pointMarker.setBounds(0, 0, pointMarker.getIntrinsicWidth(),pointMarker.getIntrinsicHeight()); 
@@ -431,9 +443,6 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 				File imageFile = RhusMapActivity.convertImageUriToFile(imageUri, this);
 				Log.i(TAG, imageFile.toString());
 				
-				
-					
-			
 				ContentValues values = new ContentValues();
 				
 				//TODO: lastKnownLocation is probably not accurate enough, we should consider waiting for the next update
@@ -486,6 +495,8 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 		}
 	}
 	
+	//Utility Functions
+	//TODO: Move to Utils
 	public static File convertImageUriToFile (Uri imageUri, Activity activity)  {
 		Cursor cursor = null;
 		try {

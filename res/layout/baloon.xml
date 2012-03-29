@@ -19,7 +19,7 @@
             android:layout_alignParentLeft="true"
             android:text="@string/note"
         />
-        <ImageView
+        <ImageButton
             android:id="@+id/close_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -42,5 +42,12 @@
             android:maxLength="160"   
             android:textSize="5pt"   
         />
+        <ImageView
+            android:id="@+id/thumbnail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@+id/note_text"
+            android:layout_marginLeft="48dp"
+            android:layout_toRightOf="@+id/note_label"/>
     </RelativeLayout>
 </com.dogantekin.baloon.BaloonLayout>

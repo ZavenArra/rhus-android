@@ -16,11 +16,12 @@ public final class R {
         public static final int mappoint=0x7f020002;
     }
     public static final class id {
-        public static final int cameraButton=0x7f050004;
+        public static final int cameraButton=0x7f050005;
         public static final int close_button=0x7f050002;
-        public static final int mapmain=0x7f050005;
+        public static final int mapmain=0x7f050006;
         public static final int note_label=0x7f050001;
         public static final int note_text=0x7f050003;
+        public static final int thumbnail=0x7f050004;
         public static final int transparent_panel=0x7f050000;
     }
     public static final class layout {

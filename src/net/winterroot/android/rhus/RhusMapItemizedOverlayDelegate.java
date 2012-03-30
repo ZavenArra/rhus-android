@@ -5,6 +5,6 @@ import com.google.android.maps.OverlayItem;
 
 abstract public class RhusMapItemizedOverlayDelegate {
 
-	abstract public void onTap(GeoPoint geoPoint, OverlayItem item);
+	abstract public void onTap(GeoPoint geoPoint, RhusOverlayItem item);
 	
 }

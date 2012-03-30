@@ -43,6 +43,11 @@ abstract public class CouchbaseMobileContentProvider extends ContentProvider {
 	//ektorp impl
 	protected CouchDbInstance dbInstance = null;
 	protected CouchDbConnector couchDbConnector = null;
+	
+	//It seems like the correct way to work with continuous replications
+	//is to have EKTorp httpClient running as a service
+	//this way the http client never gets close, and hence doesn't need to get restart
+	//when the user changes the screen orientation.
 	protected ReplicationCommand pushReplicationCommand;
 	protected ReplicationCommand pullReplicationCommand;
   
@@ -62,8 +67,10 @@ abstract public class CouchbaseMobileContentProvider extends ContentProvider {
 
 	}
 	
-	//inelegant way to all the service to start synchronously
-	//since this shouldn't be on the UI thread.
+	//Inelegant way to all the service to start synchronously
+	//This content provider shouldn't be on the UI thread anyway,
+	//and should always be CALLED asynchronously, 
+	//so that's why internally we've made it synchronous
 	private void waitMonitor(boolean wait){
 		 
 		synchronized(sync) {
@@ -86,6 +93,7 @@ abstract public class CouchbaseMobileContentProvider extends ContentProvider {
 	protected boolean ensureCouchServiceStarted(){
 		Log.v(TAG, "Ensuring couch service");
 		//Since this will be called asyncronously, will need an approach that pauses if the provider is currently starting up.
+		//if(couchServiceConnection == null)
 		if(couchDbConnector == null){
 			Log.v(TAG, "Starting the couch... can i relax??");
 			CouchbaseMobile couch = new CouchbaseMobile(getContext(), couchCallbackHandler);
@@ -94,12 +102,18 @@ abstract public class CouchbaseMobileContentProvider extends ContentProvider {
 
 			//essentially turning async launch into synchronous with onCreate().
 			waitMonitor(true);
-   		}
+   		} else {
 		//When the application is destroyed and restarted, EKTorp needs to be restarted
 		//TODO: Find a way to detect a dead EKTorp, i.e. http client which is no longer connected.
 		//Reference here: http://stackoverflow.com/questions/9505358/android-httpclient-hangs-on-second-request-to-the-server-connection-timed-out
 		//Restarting HTTP client with every request is a suggested fix to other related problems.
-		startEktorp();
+   		//This won't work because the replications listener is listening, so either shut that down and start back up..
+   		//When we return from another activity, we apparently do NOT want to restart the http client..
+   		//	Log.i(TAG, "Restarting Ektorp");
+   		//	startEktorp();
+   			dbInstance = new StdCouchDbInstance(httpClient);
+   			couchDbConnector = dbInstance.createConnector(getBucketName(), true);
+   		}
 		return true;	
 
 	}
@@ -132,6 +146,8 @@ abstract public class CouchbaseMobileContentProvider extends ContentProvider {
 			//do we want to notify a creator somehow?
 			//startEktorp(host, port);
 			startEktorp();
+			startReplications();
+			initialization();
 			waitMonitor(false);
 		}
 	};
@@ -147,32 +163,7 @@ abstract public class CouchbaseMobileContentProvider extends ContentProvider {
 		httpClient =  new AndroidHttpClient.Builder().host(host).port(port).maxConnections(100).build();
 		dbInstance = new StdCouchDbInstance(httpClient);
 		couchDbConnector = dbInstance.createConnector(getBucketName(), true);
-		startReplications();
-		initialization();
 
-		/* Changing this to synchronous task
-		CouchbaseMobileEktorpAsyncTask startupTask = new CouchbaseMobileEktorpAsyncTask() {
-
-			@Override
-			protected void doInBackground() {
-		 */
-		/*
-			}
-		couchDbConnector = dbInstance.createConnector(getBucketName(), true);
-
-			@Override
-			protected void onSuccess() {
-								startReplications();
-		initializationTask();
-				Log.v(TAG, "Successful ekTorp startup");
-
-		 */
-
-		/*	}
-		};
-
-		startupTask.execute();
-		 */
 	}
 	
 	//perform any necessary initialization, view creation, etc.
@@ -215,10 +206,9 @@ abstract public class CouchbaseMobileContentProvider extends ContentProvider {
 		pullReplication.execute();
 	}
 
-	public void stopEktorp() {
-	}
-	
 	//Shutdown connection to the couchDB service
+	//This is only called for debugging, as content provider will not be destroyed as long as
+	//process is running.
 	public void shutdown(){
 		Log.v(TAG,  "Shutting down couchServiceConnection");
 		getContext().unbindService(couchServiceConnection);

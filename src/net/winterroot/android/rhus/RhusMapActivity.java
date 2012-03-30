@@ -514,18 +514,13 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 			    byte[] thumbData = stream.toByteArray();
 
 				ByteArrayOutputStream stream2 = new ByteArrayOutputStream() ;
-				thumb.compress(Bitmap.CompressFormat.JPEG, 100, stream2);
+				medium.compress(Bitmap.CompressFormat.JPEG, 100, stream2);
 			    byte[] mediumData = stream2.toByteArray();
 				
 				values.put("thumb", thumbData); ///??? why do we get a crash in insert() ???
 				values.put("medium", mediumData);
 				
 				values.put("deviceuser_identifier", deviceId);
-				
-				//values.put()
-				
-				//values.put("jsonNode", "{ \"latitude\":0, \"longitude\":-83 }");
-		
 				
 				getContentResolver().insert(RhusDocument.CONTENT_URI, values);
 

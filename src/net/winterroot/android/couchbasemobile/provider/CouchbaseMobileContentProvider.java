@@ -109,10 +109,10 @@ abstract public class CouchbaseMobileContentProvider extends ContentProvider {
 		//Restarting HTTP client with every request is a suggested fix to other related problems.
    		//This won't work because the replications listener is listening, so either shut that down and start back up..
    		//When we return from another activity, we apparently do NOT want to restart the http client..
-   		//	Log.i(TAG, "Restarting Ektorp");
-   		//	startEktorp();
-   			dbInstance = new StdCouchDbInstance(httpClient);
-   			couchDbConnector = dbInstance.createConnector(getBucketName(), true);
+   			Log.i(TAG, "Restarting Ektorp");
+   			startEktorp();
+   		//	dbInstance = new StdCouchDbInstance(httpClient);
+   		//	couchDbConnector = dbInstance.createConnector(getBucketName(), true);
    		}
 		return true;	
 
@@ -156,7 +156,9 @@ abstract public class CouchbaseMobileContentProvider extends ContentProvider {
 		Log.v(TAG, "starting ektorp "+host+port);
 
 		if(httpClient != null) {
-			httpClient.shutdown();
+			//TODO: Consider creating content provider with out own ConnectionManager, rather than the system one
+			//Current guess is that the system connection manager goes out of scope when the activity gets destroyed.
+			//httpClient.shutdown();
 		}
 
 		

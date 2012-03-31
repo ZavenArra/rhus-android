@@ -61,7 +61,7 @@ public class RhusMapItemizedOverlay extends ItemizedOverlay {
 
 	@Override
 	protected boolean onTap(int index) {
-	  OverlayItem item = mOverlays.get(index);
+	  RhusOverlayItem item = (RhusOverlayItem) mOverlays.get(index);
 	  GeoPoint geoPoint = item.getPoint();
 	  
 	  if(delegate != null){

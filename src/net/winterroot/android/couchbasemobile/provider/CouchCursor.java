@@ -42,12 +42,6 @@ public class CouchCursor extends MatrixCursor {
 		updateListItems();
 	}
 	
-	/*
-	public JsonNode getJsonNode(int i){
-		return super.get(i);
-	}
-	*/
-	
 	protected void updateListItems() {
 		Log.v(TAG, "Update List Items Task!");
 
@@ -85,6 +79,8 @@ public class CouchCursor extends MatrixCursor {
 						}
 						Log.v(TAG, "Callinng onChange() now with"+getCount());
 						onChange(true);
+						//Implementation in Anrdoid of onChange() and requery() is pretty vague.
+						//Checking source of android indicates that requery() simply causes the DataSetObserver to be notified, whereas onChange does not
 						requery();
 
 					} else {
@@ -125,12 +121,12 @@ public class CouchCursor extends MatrixCursor {
 
 				}
 
-				/*
+				
 				@Override
 				protected void onDbAccessException(
 						DbAccessException dbAccessException) {
 					handleViewAsyncTaskDbAccessException(dbAccessException);
-				}*/
+				}
 
 			};
 

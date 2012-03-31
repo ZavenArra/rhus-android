@@ -3,10 +3,12 @@ package net.winterroot.android.rhus.provider;
 //import com.oreilly.demo.pa.finchvideo.provider.FileHandlerFactory;
 
 import java.io.IOException;
+import java.util.Date;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.util.StdDateFormat;
 import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.node.ObjectNode;
 import org.ektorp.DocumentNotFoundException;
@@ -32,6 +34,7 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 
 import android.net.Uri;
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.database.MatrixCursor;
 
@@ -116,6 +119,8 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
 	 * TODO:  This is a kludgey temporary workaround.  ContentProvider takes arguments of ContentValues, but it 
 	 * makes more sense to call with Json, or to provide a class for converting between Json and ContentValues objects
 	 * For the time being we just bypass the insert method.
+	 * Jackson ObjectMapper would be wonderful to use here, if the 'ContentValues' can be circumvented while
+	 * still allowing this class to subclass contentprovider
 	 */
 	
 	public Uri insert(Uri uri, ContentValues values) {
@@ -138,13 +143,15 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
 		ObjectNode documentNode = JsonNodeFactory.instance.objectNode();
 		documentNode.put("latitude", values.getAsDouble("latitude").toString() );
 		documentNode.put("longitude", values.getAsDouble("longitude").toString() );
-		documentNode.put("thumb-android0.1", JsonNodeFactory.instance.binaryNode(values.getAsByteArray("thumb")));
-		documentNode.put("medium-android0.1",JsonNodeFactory.instance.binaryNode(values.getAsByteArray("medium")));
+		documentNode.put("created_at", new StdDateFormat().format(new Date()) );
+		documentNode.put("deviceuser_identifier", values.getAsString("deviceuser_identifier"));
+		documentNode.put("thumbAndroid1", JsonNodeFactory.instance.binaryNode(values.getAsByteArray("thumb")));
+		documentNode.put("mediumAndroid1",JsonNodeFactory.instance.binaryNode(values.getAsByteArray("medium")));
 
 		//Skip matching the URI for the moment
 
 		//Doing this synchronously - caller should call this content provider aynchronously.
-		
+		Log.v(TAG, "Adding Document "+ documentNode.toString());
 		try {
 			couchDbConnector.create(documentNode);
 		} catch (UpdateConflictException e) {

@@ -77,8 +77,10 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 
 	// Map View Defaults
 	private final GeoPoint center = new GeoPoint( (int) (42.35*1000000), (int) (-83.07*1000000) );
-	private final int fullLatitudeDelta = (int) (.05 * 1000000);
-	private final int fullLongitudeDelta = (int) (.05 * 1000000);
+//	private final int fullLatitudeDelta = (int) (.05 * 1000000);
+//	private final int fullLongitudeDelta = (int) (.05 * 1000000);
+	private final int fullLatitudeDelta = (int) (50 * 1000000);
+	private final int fullLongitudeDelta = (int) (50 * 1000000);
 	
 	
 	//TODO:  imageUri is the current activity attribute, define and save it for later usage (also in onSaveInstanceState)
@@ -108,12 +110,15 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 	private class OverlayDelegate extends RhusMapItemizedOverlayDelegate{
 
 		@Override
-		public void onTap(GeoPoint geoPoint, OverlayItem noteOverlay) {
+		public void onTap(GeoPoint geoPoint, RhusOverlayItem noteOverlay) {
 
 			mapView.removeView(noteBaloon);
 			noteBaloon.setVisibility(View.VISIBLE);
 			((TextView)noteBaloon.findViewById(R.id.note_text)).setText("Sup Dog");
-			//((ImageView)noteBaloon.findViewById(R.id.thumbnail)).s
+			Drawable image = null;
+		//	image =  new BitmapDrawable(BitmapFactory.decodeByteArray(b, 0, b.length));
+
+			((ImageView)noteBaloon.findViewById(R.id.thumbnail)).setBackgroundDrawable(image);
 
 			mapController.animateTo(geoPoint);
 			mapView.addView(noteBaloon, new MapView.LayoutParams(200,200,geoPoint,MapView.LayoutParams.BOTTOM_CENTER));
@@ -258,6 +263,8 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
         QueryMapPointsTask queryMapPointsTask = new QueryMapPointsTask();
         queryMapPointsTask.execute(this);
                 
+        /*
+         * This is an extra call which is not necessary
         try {
 			updateOverlays();
 		} catch (JsonProcessingException e) {
@@ -267,6 +274,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		*/
  	}
 	
 	protected void updateOverlays() throws JsonProcessingException, IOException{
@@ -285,13 +293,13 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 			
 			int i = 0;
 			do {
-				Log.v(TAG, "Loading geopoint from cursor");
+				//Log.v(TAG, "Loading geopoint from cursor");
 				String id = documentsCursor.getString(0);
 				String document = documentsCursor.getString(1);	
 				JsonNode documentObject = mapper.readTree(document);
 
 				if(!loadedMapPoints.contains(id) && documentObject.get("latitude") != null ){
-					Log.v(TAG, "Adding geopoint from cursor");
+					//Log.v(TAG, "Adding geopoint from cursor");
 					int latitude = (int) (documentObject.get("latitude").getValueAsDouble()*1000000);					
 					int longitude = (int) (documentObject.get("longitude").getValueAsDouble()*1000000);
 					if(latitude == 0 && longitude == 0){
@@ -304,6 +312,10 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 
 					Drawable pointMarker;
 					JsonNode identifier = documentObject.get("deviceuser_identifier");
+					
+					if(identifier != null){
+						Log.v(TAG, deviceId +" "+ identifier.getValueAsText());
+					}
 					if( identifier!= null && documentObject.get("deviceuser_identifier").getValueAsText() == deviceId){
 						pointMarker = this.getResources().getDrawable(R.drawable.map_device_user_point);
 					} else {
@@ -461,6 +473,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
      * Camera Activity Calls
      */
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		Log.i(TAG, "onActivityResult");
 		if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
 			if (resultCode == RESULT_OK && imageUri != null) {
 				
@@ -501,18 +514,13 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 			    byte[] thumbData = stream.toByteArray();
 
 				ByteArrayOutputStream stream2 = new ByteArrayOutputStream() ;
-				thumb.compress(Bitmap.CompressFormat.JPEG, 100, stream2);
+				medium.compress(Bitmap.CompressFormat.JPEG, 100, stream2);
 			    byte[] mediumData = stream2.toByteArray();
 				
 				values.put("thumb", thumbData); ///??? why do we get a crash in insert() ???
 				values.put("medium", mediumData);
 				
 				values.put("deviceuser_identifier", deviceId);
-				
-				//values.put()
-				
-				//values.put("jsonNode", "{ \"latitude\":0, \"longitude\":-83 }");
-		
 				
 				getContentResolver().insert(RhusDocument.CONTENT_URI, values);
 

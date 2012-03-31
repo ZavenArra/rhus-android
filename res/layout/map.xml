@@ -1,20 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/RelativeLayout1"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical" >
+    android:layout_height="match_parent" >
 
-    <ImageButton
-        android:id="@+id/cameraButton"
+    <com.google.android.maps.MapView
+        android:id="@+id/mapmain"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:apiKey="0OtQngcM2L3Cw8CJjM8-TT4bnOiKaxkfWuBsV3g"
+        android:clickable="true" />
+
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:src="@drawable/camera" />
-    
-	<com.google.android.maps.MapView
-		android:id="@+id/mapmain"
-    	android:layout_width="fill_parent" 
-    	android:layout_height="fill_parent"
-    	android:clickable="true"
-        android:apiKey="0OtQngcM2L3Cw8CJjM8-TT4bnOiKaxkfWuBsV3g"    />
-    
-</LinearLayout>
+        android:layout_height="51"
+        android:layout_alignParentRight="true"
+        android:layout_marginBottom="26dp"
+        android:background="@drawable/barbackground"
+        android:paddingLeft="4dp" >
+
+        <ImageButton
+            android:id="@+id/cameraButton"
+            android:layout_width="50dp"
+            android:layout_height="51dp"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:src="@drawable/camera" />
+
+        <ImageButton
+            android:id="@+id/imageButton1"
+            android:layout_width="50dp"
+            android:layout_height="51dp"
+            android:layout_alignParentTop="true"
+            android:layout_toLeftOf="@+id/cameraButton"
+            android:src="@drawable/map" />
+
+        <ImageView
+            android:id="@+id/imageView1"
+            android:layout_width="155"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:src="@drawable/logo" />
+
+    </RelativeLayout>
+
+</RelativeLayout>

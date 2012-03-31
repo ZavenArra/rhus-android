@@ -136,8 +136,13 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 		protected Void doInBackground(RhusMapActivity... mapActivities) {
 			Log.v(TAG, "Setting document cursor asynchronously");
 			RhusMapActivity mapActivity = mapActivities[0];
-			documentsCursor = managedQuery(RhusDocument.CONTENT_URI, null,
+			if(false){
+				documentsCursor = managedQuery(RhusDocument.CONTENT_URI, null,
 					null, null, null);
+			} else {
+				documentsCursor = managedQuery(RhusDocument.USER_DOCUMENTS_URI.buildUpon().appendQueryParameter("deviceuser_identifier", deviceId).build(),
+					null, null, null, null);
+			}
 
 			documentsCursor.setNotificationUri(mapActivity.getBaseContext().getContentResolver(), RhusDocument.CONTENT_URI);
 			documentsCursor.registerDataSetObserver(new MapDataObserver());
@@ -293,16 +298,17 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 			
 			int i = 0;
 			do {
-				//Log.v(TAG, "Loading geopoint from cursor");
+				Log.v(TAG, "Loading geopoint from cursor");
 				String id = documentsCursor.getString(0);
 				String document = documentsCursor.getString(1);	
 				JsonNode documentObject = mapper.readTree(document);
 
 				if(!loadedMapPoints.contains(id) && documentObject.get("latitude") != null ){
-					//Log.v(TAG, "Adding geopoint from cursor");
+					Log.v(TAG, "Adding geopoint from cursor");
 					int latitude = (int) (documentObject.get("latitude").getValueAsDouble()*1000000);					
 					int longitude = (int) (documentObject.get("longitude").getValueAsDouble()*1000000);
 					if(latitude == 0 && longitude == 0){
+						Log.v(TAG, "Ignoring datapoing - 0:0 coordinate");
 						continue;
 					}
 
@@ -315,19 +321,24 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 					
 					if(identifier != null){
 						Log.v(TAG, deviceId +" "+ identifier.getValueAsText());
+						if(identifier.getValueAsText() == deviceId){
+							Log.v(TAG, "User Point");
+						}
 					}
-					if( identifier!= null && documentObject.get("deviceuser_identifier").getValueAsText() == deviceId){
+					
+					if( identifier!= null && (identifier.getValueAsText() == deviceId)){
 						pointMarker = this.getResources().getDrawable(R.drawable.map_device_user_point);
 					} else {
 						pointMarker = this.getResources().getDrawable(R.drawable.mappoint);
 					}
-					
 					
 					pointMarker.setBounds(0, 0, pointMarker.getIntrinsicWidth(),pointMarker.getIntrinsicHeight()); 
 					Log.v(TAG, pointMarker.toString());
 					overlayItem.setMarker(pointMarker);
 					itemizedOverlay.addOverlay(overlayItem);
 					loadedMapPoints.add(id);
+
+		
 					//Log.v(TAG, loadedMapPoints.toString());
 				}
 				i++;

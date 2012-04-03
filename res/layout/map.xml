@@ -13,7 +13,7 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="51"
+        android:layout_height="51dp"
         android:layout_alignParentRight="true"
         android:layout_marginBottom="26dp"
         android:background="@drawable/barbackground"
@@ -37,12 +37,48 @@
 
         <ImageView
             android:id="@+id/imageView1"
-            android:layout_width="155"
+            android:layout_width="155dp"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
             android:layout_alignParentTop="true"
             android:src="@drawable/logo" />
+    </RelativeLayout>
 
+    <RelativeLayout
+        android:layout_width="175dp"
+        android:layout_height="80dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="40dp"
+        android:background="@drawable/popbackground"
+        android:gravity="bottom|clip_horizontal" >
+
+        <RelativeLayout
+            android:id="@+id/RelativeLayout2"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" >
+
+            <ImageButton
+                android:id="@+id/imageButton2"
+                android:layout_width="72dp"
+                android:layout_height="57dp"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:layout_marginRight="16dp"
+                android:background="@drawable/redbackground"
+                android:src="@drawable/everyoneDeselected" />
+
+            <ImageButton
+                android:id="@+id/ImageButton01"
+                android:layout_width="40dp"
+                android:layout_height="55dp"
+                android:layout_alignBottom="@+id/imageButton2"
+                android:layout_alignParentLeft="true"
+                android:layout_marginLeft="16dp"
+                android:background="@drawable/redbackground"
+                android:src="@drawable/myDeselected" />
+
+        </RelativeLayout>
     </RelativeLayout>
 
 </RelativeLayout>

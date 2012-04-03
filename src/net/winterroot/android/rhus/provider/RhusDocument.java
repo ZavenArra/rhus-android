@@ -23,4 +23,15 @@ public class RhusDocument {
      */
     public static final Uri CONTENT_URI = DOCUMENTS_URI;
 
+    
+    
+    public String id;
+    public String longitude;
+    public String latitude;
+    public String created_at;
+    public String deviceuser_identifier;
+    public byte[] thumb;
+    public byte[] medium;
+    public String author;
+    public String comment;
 }

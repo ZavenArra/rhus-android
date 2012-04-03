@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/RelativeLayout1"
+    android:id="@+id/mapActivityView"
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
@@ -13,7 +13,7 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="51"
+        android:layout_height="51dp"
         android:layout_alignParentRight="true"
         android:layout_marginBottom="26dp"
         android:background="@drawable/barbackground"
@@ -28,7 +28,7 @@
             android:src="@drawable/camera" />
 
         <ImageButton
-            android:id="@+id/imageButton1"
+            android:id="@+id/mapOptionsButton"
             android:layout_width="50dp"
             android:layout_height="51dp"
             android:layout_alignParentTop="true"
@@ -37,7 +37,7 @@
 
         <ImageView
             android:id="@+id/imageView1"
-            android:layout_width="155"
+            android:layout_width="155dp"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
             android:layout_alignParentTop="true"

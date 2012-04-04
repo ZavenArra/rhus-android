@@ -16,10 +16,6 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import net.winterroot.android.rhus.provider.RhusDocument;
-
-import android.app.Activity;
-
 import com.dogantekin.baloon.BaloonLayout;
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapView;
@@ -28,6 +24,7 @@ import com.google.android.maps.GeoPoint;
 import com.google.android.maps.Overlay;
 import com.google.android.maps.OverlayItem;
 
+import android.app.Activity;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -38,7 +35,6 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.location.LocationProvider;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -63,12 +59,10 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.ImageView;
 import android.widget.Toast;
+
 import net.winterroot.android.util.Rhimage;
 import net.winterroot.android.wildflowers.R;
 import net.winterroot.android.rhus.provider.RhusDocument;
-
-
-
 
 public class RhusMapActivity extends MapActivity implements LocationListener {
 
@@ -92,7 +86,6 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 	private LocationManager locationManager;
 	private String bestProvider;
 	private Location lastLocation;
-	private Drawable marker;
 	
 	//Maps
 	RhusMapItemizedOverlay itemizedOverlay;
@@ -106,6 +99,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 	RelativeLayout mapOptionsBaloon;
 	boolean onlyUserData = false;
 	boolean mapOptionsShowing = false;
+	boolean updatingMapPoints = false;
 	
 	//Device
 	TelephonyManager tm;
@@ -172,6 +166,9 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 		}
 		
 		protected void onPostExecute(Void result) {
+			
+			clearMapPoints();
+			
 			try {
 				updateOverlays();
 			} catch (JsonProcessingException e) {
@@ -181,6 +178,8 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			Log.v(TAG, "updatingMapPoints FALSE");
+			updatingMapPoints = false;
 		}
 
 	}
@@ -252,21 +251,21 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 
 		final RhusMapActivity mapActivity = this;
 		//TODO: Clicking back and forth quickly could create a race condition.
-		( (ImageButton) mapOptionsBaloon.findViewById(R.id.everyonesDataButton)).setOnClickListener(
+		( (ImageButton) findViewById(R.id.everyonesDataButton )).setOnClickListener(
 				new OnClickListener(){
 					public void onClick(View arg0) {
-						onlyUserData = false;
-						QueryMapPointsTask queryMapPointsTask = new QueryMapPointsTask();
-						queryMapPointsTask.execute(mapActivity);
+						((ImageButton) findViewById(R.id.everyonesDataButton )).setImageDrawable(mapActivity.getResources().getDrawable(R.drawable.everyoneselected));
+						((ImageButton) findViewById(R.id.myDataButton )).setImageDrawable(mapActivity.getResources().getDrawable(R.drawable.mydeselected));
+						updateMapPoints(false);
 					}
 				}
 				);
-		( (ImageButton) mapOptionsBaloon.findViewById(R.id.myDataButton)).setOnClickListener(
+		( (ImageButton) findViewById(R.id.myDataButton)).setOnClickListener(
 				new OnClickListener(){
 					public void onClick(View arg0) {
-						onlyUserData = true;
-						QueryMapPointsTask queryMapPointsTask = new QueryMapPointsTask();
-						queryMapPointsTask.execute(mapActivity);
+						((ImageButton) findViewById(R.id.everyonesDataButton )).setImageDrawable(mapActivity.getResources().getDrawable(R.drawable.everyonedeselected));
+						((ImageButton) findViewById(R.id.myDataButton )).setImageDrawable(mapActivity.getResources().getDrawable(R.drawable.myselected));
+						updateMapPoints(true);
 					}
 				}
 				);
@@ -277,18 +276,14 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 		mapOptionsButton.setOnClickListener(
 				new OnClickListener(){
 					public void onClick(View arg0){
-						
-						RelativeLayout mapActivityView = (RelativeLayout) findViewById(R.id.mapActivityView); 
-						mapActivityView.addView(mapOptionsBaloon, 175, 80);
-						mapOptionsBaloon.setVisibility(View.VISIBLE);
-						int[] location = {0,0};
-						mapOptionsButton.getLocationOnScreen(location);
-						//mapOptionsBaloon.
-						
+								
+						RelativeLayout mapOptionsBaloon = (RelativeLayout) findViewById(R.id.mapOptionsBaloon);
 						if(mapOptionsShowing){
 							mapOptionsBaloon.setVisibility(View.INVISIBLE);
+							mapOptionsShowing = false;
 						} else {
-							mapOptionsBaloon.setVisibility(View.VISIBLE);		
+							mapOptionsBaloon.setVisibility(View.VISIBLE);	
+							mapOptionsShowing = true;
 						}
 					
 					}
@@ -325,9 +320,22 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
         layoutParams.addRule(RelativeLayout.CENTER_VERTICAL);
         layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
         noteBaloon.setLayoutParams(layoutParams);  
-        
-        mapOptionsBaloon = (RelativeLayout) layoutInflater.inflate(R.layout.mapoptionsbaloon, null);
-  
+	}
+	
+	private void updateMapPoints(boolean setOnlyUserData){
+		if(!updatingMapPoints){
+			onlyUserData = setOnlyUserData;
+			QueryMapPointsTask queryMapPointsTask = new QueryMapPointsTask();
+			queryMapPointsTask.execute(this);
+			updatingMapPoints = true;
+			Log.v(TAG, "updatingMapPoints TRUE");
+
+		}
+	}
+	
+	private void clearMapPoints(){
+		itemizedOverlay.removeAllOverlays();
+		loadedMapPoints.clear();
 	}
 	
 	@Override
@@ -353,13 +361,13 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 		}
 
 		if(documentsCursor != null && documentsCursor.getCount()>0){
-			Log.v(TAG, "Reading from the cursor");
+			Log.v(TAG, "Reading from the cursor"+ documentsCursor.getCount());
 			documentsCursor.moveToFirst();
 			
-			int i = 0;
 			do {
-				Log.v(TAG, "Loading geopoint from cursor");
-				String id = documentsCursor.getString(0);
+				String id = documentsCursor.getString(0);				
+				Log.v(TAG, "Loading geopoint from cursor: "+id);
+
 				String documentJson = documentsCursor.getString(1);	
 			//	JsonNode documentObject = mapper.readTree(document);
 				RhusDocument document = mapper.readValue(documentJson, RhusDocument.class);	
@@ -370,7 +378,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 					int latitude = (int) (new Double(document.latitude) *1000000);					
 					int longitude = (int) ( new Double(document.longitude) *1000000);
 					if(latitude == 0 && longitude == 0){
-						Log.v(TAG, "Ignoring datapoing - 0:0 coordinate");
+						Log.v(TAG, "Ignoring datapoint - 0:0 coordinate");
 						continue;
 					}
 
@@ -381,13 +389,6 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 					Drawable pointMarker;
 					String identifier = document.deviceuser_identifier;
 					
-					if(identifier != null){
-						Log.v(TAG, deviceId +" "+ identifier);
-						if(identifier.equals(deviceId)){
-							Log.v(TAG, "User Point");
-						}
-					}
-					
 					if( identifier!= null && (identifier.equals(deviceId))){
 						pointMarker = this.getResources().getDrawable(R.drawable.map_device_user_point);
 					} else {
@@ -395,14 +396,12 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 					}
 					
 					pointMarker.setBounds(0, 0, pointMarker.getIntrinsicWidth(),pointMarker.getIntrinsicHeight()); 
-					Log.v(TAG, pointMarker.toString());
 					overlayItem.setMarker(pointMarker);
 					itemizedOverlay.addOverlay(overlayItem);
 					loadedMapPoints.put(id, document);
 		
 					//Log.v(TAG, loadedMapPoints.toString());
 				}
-				i++;
 			} while(documentsCursor.moveToNext());
 
 		}
@@ -487,6 +486,9 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 		super.onSaveInstanceState(outState);
 
 		//TODO: Save current zoom bounds
+		
+		//Save myData or everyonesData view status
+		//Save datapoints currently being viewed for quick use during launch
 		
 		Log.i(TAG, "onSaveInstanceState");
 

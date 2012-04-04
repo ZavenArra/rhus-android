@@ -35,7 +35,7 @@
         android:layout_marginBottom="52dp"
         android:layout_marginRight="32dp"
         android:background="@null"
-        android:src="@drawable/uploadButton" />
+        android:src="@drawable/upload_button" />
 
     <ImageButton
         android:id="@+id/three_petals"
@@ -53,7 +53,7 @@
         android:layout_alignLeft="@+id/three_petals"
         android:layout_alignTop="@+id/submit_button"
         android:background="@null"
-        android:src="@drawable/cancelButtton" />
+        android:src="@drawable/cancel_button" />
 
     <ImageButton
         android:id="@+id/four_petals"

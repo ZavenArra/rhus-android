@@ -1,3 +1,4 @@
+/*
 package net.winterroot.android.wildflowers;
 
 import android.database.Cursor;
@@ -18,3 +19,4 @@ public class WildflowersActivity extends RhusActivity {
     
 
 }
+*/

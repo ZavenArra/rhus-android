@@ -42,34 +42,36 @@ public final class R {
         public static final int upload_button=0x7f02001c;
     }
     public static final class id {
-        public static final int RelativeLayout2=0x7f05000b;
-        public static final int cameraButton=0x7f050007;
-        public static final int cancel_button=0x7f050013;
+        public static final int RelativeLayout2=0x7f05000c;
+        public static final int cameraButton=0x7f050008;
+        public static final int cancel_button=0x7f050015;
         public static final int close_button=0x7f050002;
-        public static final int comments=0x7f050010;
-        public static final int everyonesDataButton=0x7f05000c;
-        public static final int five_petals=0x7f050015;
-        public static final int four_petals=0x7f050014;
-        public static final int imageButton2=0x7f05000e;
-        public static final int imageView1=0x7f050009;
-        public static final int many_petals=0x7f050017;
-        public static final int mapActivityView=0x7f050005;
-        public static final int mapOptionsBaloon=0x7f05000a;
-        public static final int mapOptionsButton=0x7f050008;
-        public static final int mapmain=0x7f050006;
-        public static final int myDataButton=0x7f05000d;
-        public static final int name=0x7f05000f;
+        public static final int comments=0x7f050012;
+        public static final int everyonesDataButton=0x7f05000d;
+        public static final int five_petals=0x7f050017;
+        public static final int four_petals=0x7f050016;
+        public static final int gallery1=0x7f050005;
+        public static final int imageButton2=0x7f05000f;
+        public static final int imageView1=0x7f05000a;
+        public static final int many_petals=0x7f050019;
+        public static final int mapActivityView=0x7f050006;
+        public static final int mapOptionsBaloon=0x7f05000b;
+        public static final int mapOptionsButton=0x7f050009;
+        public static final int mapmain=0x7f050007;
+        public static final int myDataButton=0x7f05000e;
+        public static final int name=0x7f050011;
         public static final int note_label=0x7f050001;
         public static final int note_text=0x7f050003;
-        public static final int six_petals=0x7f050016;
-        public static final int submit_button=0x7f050011;
-        public static final int three_petals=0x7f050012;
+        public static final int six_petals=0x7f050018;
+        public static final int submitFormActivityView=0x7f050010;
+        public static final int submit_button=0x7f050013;
+        public static final int three_petals=0x7f050014;
         public static final int thumbnail=0x7f050004;
         public static final int transparent_panel=0x7f050000;
     }
     public static final class layout {
         public static final int baloon=0x7f030000;
-        public static final int main=0x7f030001;
+        public static final int detail=0x7f030001;
         public static final int map=0x7f030002;
         public static final int submitform=0x7f030003;
     }

@@ -135,21 +135,6 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
 	
 	public Uri insert(Uri uri, ContentValues values) {
 		
-		/*
-		final String saveItemString = values.getAsString("jsonNode");
-		ObjectMapper mapper = new ObjectMapper();
-		JsonNode saveItem = null;
-		try {
-			saveItem = mapper.readTree(saveItemString);
-		} catch (JsonProcessingException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		*/
-		
 		ObjectNode documentNode = JsonNodeFactory.instance.objectNode();
 		documentNode.put("latitude", values.getAsDouble("latitude").toString() );
 		documentNode.put("longitude", values.getAsDouble("longitude").toString() );
@@ -168,22 +153,16 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
 			Log.d(TAG, "Got an update conflict for: " + documentNode.toString());
 			return null;
 		}
+		Log.d(TAG, "Added "+documentNode.toString());
 		
-		
-		//And then add the attachments
-		// ??
-		
-		Log.d(TAG, "Document created successfully");
-
 		long id = 0;  //Not the id!!
 		Log.d(TAG, "FIX: NOT THE ID");
 		Uri documentUri = ContentUris.withAppendedId(
 				RhusDocument.CONTENT_URI, id);
 		getContext().getContentResolver().notifyChange(documentUri, null);
-		
-		
 		//TODO: This should return the Content Provider Uri for the newly created item 
-		return null;
+		return documentUri;
+		
 	}
 	
 	@Override 

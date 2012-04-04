@@ -105,8 +105,6 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 	TelephonyManager tm;
 	String deviceId;
 
-
-
 	private class OverlayDelegate extends RhusMapItemizedOverlayDelegate{
 
 		@Override
@@ -210,6 +208,11 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 		super.onCreate(savedState);
 		Log.v(TAG, "onCreate");
 		
+		/* for Testing
+		Intent intent = new Intent("net.winterroot.android.rhus.action.SUBMITFORM");
+		startActivity(intent);
+		*/
+		
 		startLocationUpdates();
 		
         setContentView(R.layout.map);
@@ -311,6 +314,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 
     	UUID deviceUuid = new UUID(androidId.hashCode(), ((long)tmDevice.hashCode() << 32) | tmSerial.hashCode());
     	deviceId = "ANDROID"+deviceUuid.toString();
+
 	}
 	
 	private void inflateLayouts(){
@@ -551,6 +555,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 		if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
 			if (resultCode == RESULT_OK && imageUri != null) {
 				
+			
 				startLocationUpdates();
 				
 				Log.i(TAG, imageUri.toString());
@@ -591,12 +596,17 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 				medium.compress(Bitmap.CompressFormat.JPEG, 100, stream2);
 			    byte[] mediumData = stream2.toByteArray();
 				
-				values.put("thumb", thumbData); ///??? why do we get a crash in insert() ???
+				values.put("thumb", thumbData);
 				values.put("medium", mediumData);
 				
 				values.put("deviceuser_identifier", deviceId);
 				
 				getContentResolver().insert(RhusDocument.CONTENT_URI, values);
+				
+				/*TODO: Skipping for now
+				Intent intent = new Intent("net.winterroot.android.rhus.action.SUBMITFORM");
+				startActivity(intent);
+				*/
 
 
 			} else if (resultCode == RESULT_CANCELED) {

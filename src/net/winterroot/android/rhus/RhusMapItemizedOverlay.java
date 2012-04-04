@@ -49,6 +49,11 @@ public class RhusMapItemizedOverlay extends ItemizedOverlay {
 	  //  populate();
 	}
 	
+	public void removeAllOverlays(){
+		mOverlays.clear();
+		populate();
+	}
+	
 	@Override
 	protected OverlayItem createItem(int i) {
 		return mOverlays.get(i);

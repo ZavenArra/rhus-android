@@ -1,6 +1,10 @@
 package net.winterroot.android.rhus.provider;
 
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+
 import android.net.Uri;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 
 public class RhusDocument {
 
@@ -23,8 +27,7 @@ public class RhusDocument {
      */
     public static final Uri CONTENT_URI = DOCUMENTS_URI;
 
-    
-    
+
     public String id;
     public String longitude;
     public String latitude;
@@ -32,6 +35,6 @@ public class RhusDocument {
     public String deviceuser_identifier;
     public byte[] thumb;
     public byte[] medium;
-    public String author;
+    public String reporter;
     public String comment;
 }

@@ -49,7 +49,7 @@
 
     <ImageButton
         android:id="@+id/cancel_button"
-        android:layout_width="90dp"
+        android:layout_width="110dp"
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/three_petals"
         android:layout_alignTop="@+id/submit_button"
@@ -91,5 +91,42 @@
         android:layout_toRightOf="@+id/comments"
         android:background="@null"
         android:src="@drawable/unselected_manypetal" />
+
+    <ImageButton
+        android:id="@+id/irregular"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/three_petals"
+        android:layout_marginTop="41dp"
+        android:layout_toLeftOf="@+id/four_petals"
+        android:background="@null"
+        android:src="@drawable/unselected_irregular" />
+
+    <ImageButton
+        android:id="@+id/icomposite"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/irregular"
+        android:layout_toRightOf="@+id/four_petals"
+        android:background="@null"
+        android:src="@drawable/unselected_compsite" />
+
+    <ImageButton
+        android:id="@+id/tree"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/irregular"
+        android:layout_alignLeft="@+id/six_petals"
+        android:background="@null"
+        android:src="@drawable/unselected_tree" />
+
+    <ImageButton
+        android:id="@+id/fruit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignRight="@+id/many_petals"
+        android:layout_alignTop="@+id/tree"
+        android:background="@null"
+        android:src="@drawable/unselected_fruit" />
 
 </RelativeLayout>

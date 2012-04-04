@@ -6,21 +6,22 @@
     android:gravity="bottom" >
 
     <ImageButton
-        android:id="@+id/imageButton1"
-        android:layout_width="40dp"
-        android:layout_height="55dp"
-        android:layout_alignParentRight="true"
-        android:layout_marginRight="17dp"
-        android:background="@drawable/redbackground"
-        android:src="@drawable/myDeselected" />
-
-    <ImageButton
-        android:id="@+id/imageButton2"
+        android:id="@+id/everyonesDataButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_centerVertical="true"
         android:background="@drawable/redbackground"
-        android:src="@drawable/everyoneDeselected" />
+        android:src="@drawable/everyonedeselected" />
+
+    <ImageButton
+        android:id="@+id/myDataButton"
+        android:layout_width="40dp"
+        android:layout_height="55dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="16dp"
+        android:background="@drawable/redbackground"
+        android:src="@drawable/mydeselected" />
 
 </RelativeLayout>

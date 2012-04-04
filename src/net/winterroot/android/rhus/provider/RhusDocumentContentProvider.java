@@ -3,7 +3,9 @@ package net.winterroot.android.rhus.provider;
 //import com.oreilly.demo.pa.finchvideo.provider.FileHandlerFactory;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.Date;
+import java.util.HashMap;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonProcessingException;
@@ -11,6 +13,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.util.StdDateFormat;
 import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.node.ObjectNode;
+import org.ektorp.ComplexKey;
 import org.ektorp.DocumentNotFoundException;
 import org.ektorp.UpdateConflictException;
 import org.ektorp.ViewQuery;
@@ -53,11 +56,15 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
     private static final int DOCUMENT_ID = 2;		  //get document by id
     private static final int DOCUMENT_THUMB_ID = 3;   //get document thumb by id
     private static final int DOCUMENT_IMAGE_ID = 4;   //get document image by id
+    private static final int USER_DOCUMENTS = 5;
+    private static final int USER_IDENTIFIER = 6;
     
     private static final String dDocId = "_design/rhus";
-	public static final String allDocsViewName = "all";
-    private static final String allDocsMapFunction = "function(doc) { emit(doc._id, doc);}";
-
+    public static final String userDocsViewName = "userDocuments";
+	public static final String allDocsViewName = "allDocuments";
+    private static final String userDocsMapFunction = "function(doc) { emit([doc.deviceuser_identifier, doc.created_at],{'id':doc._id, 'thumb':doc.thumb, 'medium':doc.medium, 'latitude':doc.latitude, 'longitude':doc.longitude, 'reporter':doc.reporter, 'comment':doc.comment, 'created_at':doc.created_at, 'deviceuser_identifier':doc.deviceuser_identifier } );}";
+    private static final String allDocsMapFunction = "function(doc) { emit(doc.created_at,{'id':doc._id, 'thumb':doc.thumb, 'medium':doc.medium, 'latitude':doc.latitude, 'longitude':doc.longitude, 'reporter':doc.reporter, 'comment':doc.comment, 'created_at':doc.created_at, 'deviceuser_identifier':doc.deviceuser_identifier } );}";
+    
     private static UriMatcher sUriMatcher;
 	
     static {
@@ -74,6 +81,9 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
         sUriMatcher.addURI(RhusDocument.AUTHORITY,
                 RhusDocument.IMAGE + "/*",
                 DOCUMENT_IMAGE_ID);
+        sUriMatcher.addURI(RhusDocument.AUTHORITY,
+        		RhusDocument.USER_DOCUMENTS,
+        		USER_DOCUMENTS);
     }
    /* 
     public RhusDocumentContentProvider() {
@@ -208,11 +218,19 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
 			couchDbConnector.create(dDoc);
 		}
 
-
-
+		
+		try {
+			DesignDocument dDoc = couchDbConnector.get(DesignDocument.class, dDocId);
+			dDoc.addView(userDocsViewName, new DesignDocument.View(userDocsMapFunction));
+			couchDbConnector.update(dDoc);
+		}
+		catch(DocumentNotFoundException ndfe) {
+			DesignDocument dDoc = new DesignDocument(dDocId);
+			dDoc.addView(userDocsViewName, new DesignDocument.View(userDocsMapFunction));
+			couchDbConnector.create(dDoc);
+		}
 
 		Log.v(TAG, "Finished RHUS initialization");
-
 	}
 
 
@@ -226,6 +244,7 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
     	Log.v(TAG, "Content provider query");
 
 	    CouchCursor queryCursor = null;
+	    ViewQuery viewQuery;
 
 	    int match = sUriMatcher.match(uri);
 	    switch (match) {
@@ -233,24 +252,34 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
 	        	//This really shouldn't ever happen, or should be limited by default
 	        	//to avoid attempts to display a huge dataset
 	        	Log.v(TAG, "URI Query for all documents");
-//	        	ViewQuery viewQuery = new ViewQuery().designDocId(dDocId).viewName(byDateViewName).descending(true);
-	//        	ViewQuery viewQuery = new ViewQuery().allDocs();
-	        	//ViewResult result = couchDbConnector.queryView(viewQuery);
-
-	  //      	queryCursor = new CouchCursor(couchDbConnector, viewQuery);
+	        	viewQuery = new ViewQuery().designDocId(dDocId).viewName(allDocsViewName).updateSeq(true);	
+	        	queryCursor = new CouchCursor(couchDbConnector, viewQuery);
+	        	queryCursor.setNotificationUri(getContext().getContentResolver(), uri);
+	        	
+	        	break;
+	        	
+	        case USER_DOCUMENTS:
+	        	Log.v(TAG, "URI Query for user documents");
+	        	viewQuery = new ViewQuery().designDocId(dDocId).viewName(userDocsViewName).updateSeq(true);
+	        	String deviceuser_identifier = uri.getQueryParameter("deviceuser_identifier");
+	        	if(deviceuser_identifier==null){
+	        		Log.e(TAG, "USER_DOCUMENTS Uri called without user_identifier");
+	        		//TODO: Improve exception handling
+	        		throw new RuntimeException();
+	        	}
+	        	
+	        	ComplexKey startKey = ComplexKey.of(deviceuser_identifier, new HashMap());
+	        	ComplexKey endKey = ComplexKey.of(deviceuser_identifier);
+	        	viewQuery.startKey(startKey);
+	        	viewQuery.endKey(endKey);
+	        	viewQuery.descending(true);
+	        	queryCursor = new CouchCursor(couchDbConnector, viewQuery);
+	        	queryCursor.setNotificationUri(getContext().getContentResolver(), uri);
 	        	break;
 	        	
 	    }
-    	Log.v(TAG, "wahtever");
    
-       	//ViewQuery viewQuery = new ViewQuery().allDocs();
-    	ViewQuery viewQuery = new ViewQuery().designDocId(dDocId).viewName(allDocsViewName).updateSeq(true);
-
-    	//ViewResult result = couchDbConnector.queryView(viewQuery);
-	
-    	queryCursor = new CouchCursor(couchDbConnector, viewQuery);
-    	queryCursor.setNotificationUri(getContext().getContentResolver(), uri);
-    	return queryCursor;
+	    return queryCursor;
 	}
 
 	@Override

@@ -11,5 +11,9 @@ public class RhusOverlayItem extends OverlayItem {
 		super(point, "", "");
 		documentId = id;
 	}
+	
+	public String documentId(){
+		return documentId;
+	}
 
 }

@@ -1,5 +1,6 @@
 package net.winterroot.android.couchbasemobile.provider;
 
+import org.apache.http.conn.ClientConnectionManager;
 import org.codehaus.jackson.JsonNode;
 import org.ektorp.CouchDbConnector;
 import org.ektorp.CouchDbInstance;
@@ -54,6 +55,8 @@ abstract public class CouchbaseMobileContentProvider extends ContentProvider {
 	abstract public String getBucketName();
 	abstract public String getReplicationUrl();
 	
+	private ClientConnectionManager clientConnectionManager = null;
+	
 	public Object sync;
 	
 	@Override
@@ -61,8 +64,11 @@ abstract public class CouchbaseMobileContentProvider extends ContentProvider {
     	Log.v(TAG, "On Create Content Provider");
     	//call ensure here and block with wait() in 2nd call to ensure from query, etc.
     	//this would be the best
-    	
     	sync = new Object();
+   
+    	//One idea was to bring out own clientConnectionManager, because using the one provided by AndroidHttpClient
+    	//may be causing problems during ContentProvider Lifecycle
+    	//clientConnectionManager = ClientConnectionManagerFactory.newInstance()
     	return true;
 
 	}
@@ -163,6 +169,7 @@ abstract public class CouchbaseMobileContentProvider extends ContentProvider {
 
 		
 		httpClient =  new AndroidHttpClient.Builder().host(host).port(port).maxConnections(100).build();
+		//clientConnectionManager = httpClient.getConnectionManager(); 
 		dbInstance = new StdCouchDbInstance(httpClient);
 		couchDbConnector = dbInstance.createConnector(getBucketName(), true);
 

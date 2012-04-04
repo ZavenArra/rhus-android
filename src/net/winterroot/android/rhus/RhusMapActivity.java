@@ -1,9 +1,11 @@
 package net.winterroot.android.rhus;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
@@ -61,6 +63,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.ImageView;
 import android.widget.Toast;
+import net.winterroot.android.util.Rhimage;
 import net.winterroot.android.wildflowers.R;
 import net.winterroot.android.rhus.provider.RhusDocument;
 
@@ -98,8 +101,11 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 	MapView mapView;
 	MapController mapController;
 	boolean startedUpdates = false;
-	List<String> loadedMapPoints;
+	HashMap<String, RhusDocument> loadedMapPoints;
 	BaloonLayout noteBaloon;
+	RelativeLayout mapOptionsBaloon;
+	boolean onlyUserData = false;
+	boolean mapOptionsShowing = false;
 	
 	//Device
 	TelephonyManager tm;
@@ -110,18 +116,34 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 	private class OverlayDelegate extends RhusMapItemizedOverlayDelegate{
 
 		@Override
-		public void onTap(GeoPoint geoPoint, RhusOverlayItem noteOverlay) {
+		public void onTap(GeoPoint geoPoint, RhusOverlayItem rhusOverlayItem) {
 
 			mapView.removeView(noteBaloon);
-			noteBaloon.setVisibility(View.VISIBLE);
-			((TextView)noteBaloon.findViewById(R.id.note_text)).setText("Sup Dog");
-			Drawable image = null;
-		//	image =  new BitmapDrawable(BitmapFactory.decodeByteArray(b, 0, b.length));
+			
+			if( loadedMapPoints.containsKey(rhusOverlayItem.documentId()) ){
+				RhusDocument document = loadedMapPoints.get(rhusOverlayItem.documentId());
+				((TextView)noteBaloon.findViewById(R.id.note_text)).setText(document.created_at);
+				
+				if(document.thumb != null){
+					ByteArrayInputStream is = new ByteArrayInputStream(document.thumb);
+					Drawable drw = Drawable.createFromStream(is, "thumbnailImage");
+					((ImageView)noteBaloon.findViewById(R.id.thumbnail)).setBackgroundDrawable(drw);
+				} else {
+					((ImageView)noteBaloon.findViewById(R.id.thumbnail)).setBackgroundDrawable(null);
+				}
 
-			((ImageView)noteBaloon.findViewById(R.id.thumbnail)).setBackgroundDrawable(image);
+
+				
+				//Drawable	thumb =  new BitmapDrawable(BitmapFactory.decodeByteArray(b, 0, b.length));
+
+				mapView.addView(noteBaloon, new MapView.LayoutParams(200,200,geoPoint,MapView.LayoutParams.BOTTOM_CENTER));
+				noteBaloon.setVisibility(View.VISIBLE);
+
+			}
 
 			mapController.animateTo(geoPoint);
-			mapView.addView(noteBaloon, new MapView.LayoutParams(200,200,geoPoint,MapView.LayoutParams.BOTTOM_CENTER));
+	
+
 			//mapView.setEnabled(false);       
 
 		}
@@ -136,8 +158,13 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 		protected Void doInBackground(RhusMapActivity... mapActivities) {
 			Log.v(TAG, "Setting document cursor asynchronously");
 			RhusMapActivity mapActivity = mapActivities[0];
-			documentsCursor = managedQuery(RhusDocument.CONTENT_URI, null,
+			if(onlyUserData){
+				documentsCursor = managedQuery(RhusDocument.USER_DOCUMENTS_URI.buildUpon().appendQueryParameter("deviceuser_identifier", deviceId).build(),
+						null, null, null, null);
+			} else {
+				documentsCursor = managedQuery(RhusDocument.CONTENT_URI, null,
 					null, null, null);
+			}
 
 			documentsCursor.setNotificationUri(mapActivity.getBaseContext().getContentResolver(), RhusDocument.CONTENT_URI);
 			documentsCursor.registerDataSetObserver(new MapDataObserver());
@@ -182,7 +209,6 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 	@Override
 	public void onCreate(Bundle savedState) {
 		super.onCreate(savedState);
-
 		Log.v(TAG, "onCreate");
 		
 		startLocationUpdates();
@@ -193,18 +219,17 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
         mapController = mapView.getController();
         mapController.setCenter(center);
         mapController.zoomToSpan(fullLatitudeDelta, fullLongitudeDelta);
-        loadedMapPoints = new ArrayList<String>();
+        loadedMapPoints = new HashMap<String, RhusDocument>();
 		
-   
 		Drawable drawable = this.getResources().getDrawable(R.drawable.ic_launcher);
-		//	marker = this.getResources().getDrawable(R.drawable.mappoint);
 		itemizedOverlay = new RhusMapItemizedOverlay(drawable, this);
 		itemizedOverlay.setDelegate(new OverlayDelegate());
     	
+		inflateLayouts();
+		
 		//Wire up camera activity button
 		((ImageButton) findViewById(R.id.cameraButton)).setOnClickListener(
 				new OnClickListener(){
-
 					public void onClick(View arg0) {
 						//define the file-name to save photo taken by Camera activity
 						String fileName = "new-photo-name.jpg";
@@ -221,17 +246,58 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 						intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1);
 						startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
 
-						
+					}
+				}		
+				);
+
+		final RhusMapActivity mapActivity = this;
+		//TODO: Clicking back and forth quickly could create a race condition.
+		( (ImageButton) mapOptionsBaloon.findViewById(R.id.everyonesDataButton)).setOnClickListener(
+				new OnClickListener(){
+					public void onClick(View arg0) {
+						onlyUserData = false;
+						QueryMapPointsTask queryMapPointsTask = new QueryMapPointsTask();
+						queryMapPointsTask.execute(mapActivity);
 					}
 				}
 				);
+		( (ImageButton) mapOptionsBaloon.findViewById(R.id.myDataButton)).setOnClickListener(
+				new OnClickListener(){
+					public void onClick(View arg0) {
+						onlyUserData = true;
+						QueryMapPointsTask queryMapPointsTask = new QueryMapPointsTask();
+						queryMapPointsTask.execute(mapActivity);
+					}
+				}
+				);
+		
 
-	    LayoutInflater              layoutInflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        noteBaloon = (BaloonLayout) layoutInflater.inflate(R.layout.baloon, null);
-        RelativeLayout.LayoutParams layoutParams   = new RelativeLayout.LayoutParams(200,100);
-        layoutParams.addRule(RelativeLayout.CENTER_VERTICAL);
-        layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
-        noteBaloon.setLayoutParams(layoutParams);   
+		
+		final ImageButton mapOptionsButton = (ImageButton) findViewById(R.id.mapOptionsButton);
+		mapOptionsButton.setOnClickListener(
+				new OnClickListener(){
+					public void onClick(View arg0){
+						
+						RelativeLayout mapActivityView = (RelativeLayout) findViewById(R.id.mapActivityView); 
+						mapActivityView.addView(mapOptionsBaloon, 175, 80);
+						mapOptionsBaloon.setVisibility(View.VISIBLE);
+						int[] location = {0,0};
+						mapOptionsButton.getLocationOnScreen(location);
+						//mapOptionsBaloon.
+						
+						if(mapOptionsShowing){
+							mapOptionsBaloon.setVisibility(View.INVISIBLE);
+						} else {
+							mapOptionsBaloon.setVisibility(View.VISIBLE);		
+						}
+					
+					}
+				}		
+				);
+		
+		
+
+ 
         
         ( (ImageButton) noteBaloon.findViewById(R.id.close_button)).setOnClickListener(
         		new OnClickListener(){
@@ -252,6 +318,18 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
     	deviceId = "ANDROID"+deviceUuid.toString();
 	}
 	
+	private void inflateLayouts(){
+	    LayoutInflater              layoutInflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        noteBaloon = (BaloonLayout) layoutInflater.inflate(R.layout.baloon, null);
+        RelativeLayout.LayoutParams layoutParams   = new RelativeLayout.LayoutParams(200,100);
+        layoutParams.addRule(RelativeLayout.CENTER_VERTICAL);
+        layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
+        noteBaloon.setLayoutParams(layoutParams);  
+        
+        mapOptionsBaloon = (RelativeLayout) layoutInflater.inflate(R.layout.mapoptionsbaloon, null);
+  
+	}
+	
 	@Override
 	protected void onStart() {
 		super.onStart();
@@ -259,22 +337,9 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 		Log.i(TAG, "onStart");
         
         mapOverlays = mapView.getOverlays();
-
         QueryMapPointsTask queryMapPointsTask = new QueryMapPointsTask();
         queryMapPointsTask.execute(this);
-                
-        /*
-         * This is an extra call which is not necessary
-        try {
-			updateOverlays();
-		} catch (JsonProcessingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		*/
+   
  	}
 	
 	protected void updateOverlays() throws JsonProcessingException, IOException{
@@ -293,16 +358,19 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 			
 			int i = 0;
 			do {
-				//Log.v(TAG, "Loading geopoint from cursor");
+				Log.v(TAG, "Loading geopoint from cursor");
 				String id = documentsCursor.getString(0);
-				String document = documentsCursor.getString(1);	
-				JsonNode documentObject = mapper.readTree(document);
-
-				if(!loadedMapPoints.contains(id) && documentObject.get("latitude") != null ){
-					//Log.v(TAG, "Adding geopoint from cursor");
-					int latitude = (int) (documentObject.get("latitude").getValueAsDouble()*1000000);					
-					int longitude = (int) (documentObject.get("longitude").getValueAsDouble()*1000000);
+				String documentJson = documentsCursor.getString(1);	
+			//	JsonNode documentObject = mapper.readTree(document);
+				RhusDocument document = mapper.readValue(documentJson, RhusDocument.class);	
+				
+				
+				if(!loadedMapPoints.containsKey(id) && document.latitude != null ){
+					Log.v(TAG, "Adding geopoint from cursor");
+					int latitude = (int) (new Double(document.latitude) *1000000);					
+					int longitude = (int) ( new Double(document.longitude) *1000000);
 					if(latitude == 0 && longitude == 0){
+						Log.v(TAG, "Ignoring datapoing - 0:0 coordinate");
 						continue;
 					}
 
@@ -311,23 +379,27 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 					OverlayItem overlayItem = new RhusOverlayItem(point, id);
 
 					Drawable pointMarker;
-					JsonNode identifier = documentObject.get("deviceuser_identifier");
+					String identifier = document.deviceuser_identifier;
 					
 					if(identifier != null){
-						Log.v(TAG, deviceId +" "+ identifier.getValueAsText());
+						Log.v(TAG, deviceId +" "+ identifier);
+						if(identifier.equals(deviceId)){
+							Log.v(TAG, "User Point");
+						}
 					}
-					if( identifier!= null && documentObject.get("deviceuser_identifier").getValueAsText() == deviceId){
+					
+					if( identifier!= null && (identifier.equals(deviceId))){
 						pointMarker = this.getResources().getDrawable(R.drawable.map_device_user_point);
 					} else {
 						pointMarker = this.getResources().getDrawable(R.drawable.mappoint);
 					}
 					
-					
 					pointMarker.setBounds(0, 0, pointMarker.getIntrinsicWidth(),pointMarker.getIntrinsicHeight()); 
 					Log.v(TAG, pointMarker.toString());
 					overlayItem.setMarker(pointMarker);
 					itemizedOverlay.addOverlay(overlayItem);
-					loadedMapPoints.add(id);
+					loadedMapPoints.put(id, document);
+		
 					//Log.v(TAG, loadedMapPoints.toString());
 				}
 				i++;
@@ -480,7 +552,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 				startLocationUpdates();
 				
 				Log.i(TAG, imageUri.toString());
-				File imageFile = RhusMapActivity.convertImageUriToFile(imageUri, this);
+				File imageFile = Rhimage.convertImageUriToFile(imageUri, this);
 				Log.i(TAG, imageFile.toString());
 				
 				ContentValues values = new ContentValues();
@@ -503,9 +575,9 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 				values.put("longitude", longitude);
 				
 				
-				Bitmap thumb = resizeBitMapImage1(imageFile.getAbsolutePath(), 50, 50);
+				Bitmap thumb = Rhimage.resizeBitMapImage1(imageFile.getAbsolutePath(), 50, 50);
 				Log.i("BINARY", thumb.toString());
-				Bitmap medium = resizeBitMapImage1(imageFile.getAbsolutePath(), 320, 480);
+				Bitmap medium = Rhimage.resizeBitMapImage1(imageFile.getAbsolutePath(), 320, 480);
 				Log.i(TAG, medium.toString());
 
 
@@ -533,74 +605,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 		}
 	}
 	
-	//Utility Functions
-	//TODO: Move to Utils
-	public static File convertImageUriToFile (Uri imageUri, Activity activity)  {
-		Cursor cursor = null;
-		try {
-			String [] proj={MediaStore.Images.Media.DATA, MediaStore.Images.Media._ID, MediaStore.Images.ImageColumns.ORIENTATION};
-			cursor = activity.managedQuery( imageUri,
-					proj, // Which columns to return
-					null,       // WHERE clause; which rows to return (all rows)
-					null,       // WHERE clause selection arguments (none)
-					null); // Order-by clause (ascending by name)
-			int file_ColumnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-			int orientation_ColumnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.ImageColumns.ORIENTATION);
-			if (cursor.moveToFirst()) {
-				String orientation =  cursor.getString(orientation_ColumnIndex);
-				return new File(cursor.getString(file_ColumnIndex));
-			}
-			return null;
-		} finally {
-			if (cursor != null) {
-				cursor.close();
-			}
-		}
-	}
 	
-	public static Bitmap resizeBitMapImage1(String filePath, int targetWidth,
-            int targetHeight) {
-        Bitmap bitMapImage = null;
-        // First, get the dimensions of the image
-        Options options = new Options();
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(filePath, options);
-        double sampleSize = 0;
-        // Only scale if we need to
-        // (16384 buffer for img processing)
-        Boolean scaleByHeight = Math.abs(options.outHeight - targetHeight) >= Math
-                .abs(options.outWidth - targetWidth);
-
-        if (options.outHeight * options.outWidth * 2 >= 1638) {
-            // Load, scaling to smallest power of 2 that'll get it <= desired
-            // dimensions
-            sampleSize = scaleByHeight ? options.outHeight / targetHeight
-                    : options.outWidth / targetWidth;
-            sampleSize = (int) Math.pow(2d,
-                    Math.floor(Math.log(sampleSize) / Math.log(2d)));
-        }
-
-        // Do the actual decoding
-        options.inJustDecodeBounds = false;
-        options.inTempStorage = new byte[128];
-        while (true) {
-            try {
-                options.inSampleSize = (int) sampleSize;
-                bitMapImage = BitmapFactory.decodeFile(filePath, options);
-
-                break;
-            } catch (Exception ex) {
-                try {
-                    sampleSize = sampleSize * 2;
-                } catch (Exception ex1) {
-
-                }
-            }
-        }
-
-        return bitMapImage;
-    }
-
 	
 	//Location Listener Events
 	public void onLocationChanged(Location location) {

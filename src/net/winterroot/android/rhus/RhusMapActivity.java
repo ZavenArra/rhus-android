@@ -254,8 +254,8 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 		( (ImageButton) findViewById(R.id.everyonesDataButton )).setOnClickListener(
 				new OnClickListener(){
 					public void onClick(View arg0) {
-						((ImageButton) findViewById(R.id.everyonesDataButton )).setBackgroundDrawable(mapActivity.getResources().getDrawable(R.drawable.everyoneselected));
-						((ImageButton) findViewById(R.id.myDataButton )).setBackgroundDrawable(mapActivity.getResources().getDrawable(R.drawable.mydeselected));
+						((ImageButton) findViewById(R.id.everyonesDataButton )).setImageDrawable(mapActivity.getResources().getDrawable(R.drawable.everyoneselected));
+						((ImageButton) findViewById(R.id.myDataButton )).setImageDrawable(mapActivity.getResources().getDrawable(R.drawable.mydeselected));
 						updateMapPoints(false);
 					}
 				}
@@ -263,8 +263,8 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 		( (ImageButton) findViewById(R.id.myDataButton)).setOnClickListener(
 				new OnClickListener(){
 					public void onClick(View arg0) {
-						((ImageButton) findViewById(R.id.everyonesDataButton )).setBackgroundDrawable(mapActivity.getResources().getDrawable(R.drawable.everyonedeselected));
-						((ImageButton) findViewById(R.id.myDataButton )).setBackgroundDrawable(mapActivity.getResources().getDrawable(R.drawable.myselected));
+						((ImageButton) findViewById(R.id.everyonesDataButton )).setImageDrawable(mapActivity.getResources().getDrawable(R.drawable.everyonedeselected));
+						((ImageButton) findViewById(R.id.myDataButton )).setImageDrawable(mapActivity.getResources().getDrawable(R.drawable.myselected));
 						updateMapPoints(true);
 					}
 				}
@@ -277,10 +277,13 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 				new OnClickListener(){
 					public void onClick(View arg0){
 								
+						RelativeLayout mapOptionsBaloon = (RelativeLayout) findViewById(R.id.mapOptionsBaloon);
 						if(mapOptionsShowing){
 							mapOptionsBaloon.setVisibility(View.INVISIBLE);
+							mapOptionsShowing = false;
 						} else {
-							mapOptionsBaloon.setVisibility(View.VISIBLE);		
+							mapOptionsBaloon.setVisibility(View.VISIBLE);	
+							mapOptionsShowing = true;
 						}
 					
 					}

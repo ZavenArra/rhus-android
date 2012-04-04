@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <EditText
+        android:id="@+id/name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="23dp"
+        android:ems="10"
+        android:inputType="textPersonName" >
+
+        <requestFocus />
+    </EditText>
+
+    <EditText
+        android:id="@+id/comments"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/name"
+        android:layout_below="@+id/name"
+        android:layout_marginTop="30dp"
+        android:ems="10"
+        android:inputType="textMultiLine" />
+
+    <ImageButton
+        android:id="@+id/submit_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginBottom="52dp"
+        android:layout_marginRight="32dp"
+        android:background="@null"
+        android:src="@drawable/upload_button" />
+
+    <ImageButton
+        android:id="@+id/three_petals"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/comments"
+        android:layout_marginTop="52dp"
+        android:background="@null"
+        android:src="@drawable/unselected_threepetal" />
+
+    <ImageButton
+        android:id="@+id/cancel_button"
+        android:layout_width="90dp"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/three_petals"
+        android:layout_alignTop="@+id/submit_button"
+        android:background="@null"
+        android:src="@drawable/cancel_button" />
+
+    <ImageButton
+        android:id="@+id/four_petals"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignRight="@+id/cancel_button"
+        android:layout_alignTop="@+id/three_petals"
+        android:background="@null"
+        android:src="@drawable/unselected_fourpetal" />
+
+    <ImageButton
+        android:id="@+id/five_petals"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/four_petals"
+        android:layout_centerHorizontal="true"
+        android:background="@null"
+        android:src="@drawable/unselected_fivepetal" />
+
+    <ImageButton
+        android:id="@+id/six_petals"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/submit_button"
+        android:layout_alignTop="@+id/five_petals"
+        android:background="@null"
+        android:src="@drawable/unselected_sixpetal" />
+
+    <ImageButton
+        android:id="@+id/many_petals"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/six_petals"
+        android:layout_toRightOf="@+id/comments"
+        android:background="@null"
+        android:src="@drawable/unselected_manypetal" />
+
+</RelativeLayout>

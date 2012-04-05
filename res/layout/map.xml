@@ -15,27 +15,19 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="51dp"
+        android:layout_height="50dp"
         android:layout_alignParentRight="true"
-        android:layout_marginBottom="26dp"
         android:background="@drawable/barbackground"
+        android:gravity="bottom"
         android:paddingLeft="4dp" >
 
         <ImageButton
             android:id="@+id/cameraButton"
-            android:layout_width="50dp"
-            android:layout_height="51dp"
+            android:layout_width="51dp"
+            android:layout_height="match_parent"
             android:layout_alignParentRight="true"
             android:layout_alignParentTop="true"
             android:src="@drawable/camera" />
-
-        <ImageButton
-            android:id="@+id/mapOptionsButton"
-            android:layout_width="50dp"
-            android:layout_height="51dp"
-            android:layout_alignParentTop="true"
-            android:layout_toLeftOf="@+id/cameraButton"
-            android:src="@drawable/map" />
 
         <ImageView
             android:id="@+id/imageView1"
@@ -44,48 +36,59 @@
             android:layout_alignParentLeft="true"
             android:layout_alignParentTop="true"
             android:src="@drawable/logo" />
+
+        <ImageButton
+            android:id="@+id/mapOptionsButton"
+            android:layout_width="51dp"
+            android:layout_height="match_parent"
+            android:layout_alignParentTop="true"
+            android:layout_toLeftOf="@+id/cameraButton"
+            android:src="@drawable/map" />
+
     </RelativeLayout>
 
     <RelativeLayout
         android:id="@+id/mapOptionsBaloon"
-        android:layout_width="175dp"
-        android:layout_height="80dp"
+        android:layout_width="185dp"
+        android:layout_height="90dp"
+        android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
         android:layout_marginBottom="5dp"
-        android:layout_marginTop="40dp"
+        android:layout_marginLeft="130dp"
+        android:layout_marginTop="38dp"
         android:background="@drawable/popbackground"
-        android:gravity="bottom|clip_horizontal" 
-        android:visibility="invisible"
+        android:gravity="bottom|clip_horizontal" >
+ <!-- android:visibility="invisible" -->
         >
 
         <RelativeLayout
             android:id="@+id/RelativeLayout2"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" 
-            >
+            android:layout_height="68dp"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true" >
+
+            <ImageButton
+                android:id="@+id/myDataButton"
+                android:layout_width="40dp"
+                android:layout_height="57dp"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginLeft="19dp"
+                android:background="@null"
+                android:src="@drawable/mydeselected" />
 
             <ImageButton
                 android:id="@+id/everyonesDataButton"
                 android:layout_width="72dp"
                 android:layout_height="57dp"
                 android:layout_alignParentRight="true"
-                android:layout_centerVertical="true"
-                android:layout_marginRight="16dp"
-                android:background="@drawable/redbackground"
+                android:layout_alignParentTop="true"
+                android:layout_marginRight="14dp"
+                android:background="@null"
                 android:src="@drawable/everyoneselected" />
-
-            <ImageButton
-                android:id="@+id/myDataButton"
-                android:layout_width="40dp"
-                android:layout_height="55dp"
-                android:layout_alignBottom="@+id/imageButton2"
-                android:layout_alignParentLeft="true"
-                android:layout_marginLeft="16dp"
-                android:background="@drawable/redbackground"
-                android:src="@drawable/mydeselected" />
-            
-		</RelativeLayout>
+        </RelativeLayout>
 
     </RelativeLayout>
 

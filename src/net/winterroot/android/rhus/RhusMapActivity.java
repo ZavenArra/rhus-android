@@ -61,6 +61,7 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import net.winterroot.android.util.Rhimage;
+import net.winterroot.android.util.RhusDevice;
 import net.winterroot.android.wildflowers.R;
 import net.winterroot.android.rhus.provider.RhusDocument;
 
@@ -97,13 +98,8 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 	HashMap<String, RhusDocument> loadedMapPoints;
 	BaloonLayout noteBaloon;
 	RelativeLayout mapOptionsBaloon;
-	boolean onlyUserData = false;
 	boolean mapOptionsShowing = false;
 	boolean updatingMapPoints = false;
-	
-	//Device
-	TelephonyManager tm;
-	String deviceId;
 
 	private class OverlayDelegate extends RhusMapItemizedOverlayDelegate{
 
@@ -150,15 +146,12 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 		protected Void doInBackground(RhusMapActivity... mapActivities) {
 			Log.v(TAG, "Setting document cursor asynchronously");
 			RhusMapActivity mapActivity = mapActivities[0];
-			if(onlyUserData){
-				documentsCursor = managedQuery(RhusDocument.USER_DOCUMENTS_URI.buildUpon().appendQueryParameter("deviceuser_identifier", deviceId).build(),
-						null, null, null, null);
-			} else {
-				documentsCursor = managedQuery(RhusDocument.CONTENT_URI, null,
+			
+			Uri workingSetUri = ((RhusApplication) getApplicationContext()).rhusDataSet.getQueryUri();
+			documentsCursor = 	documentsCursor = managedQuery(workingSetUri, null,
 					null, null, null);
-			}
-
-			documentsCursor.setNotificationUri(mapActivity.getBaseContext().getContentResolver(), RhusDocument.CONTENT_URI);
+	
+			documentsCursor.setNotificationUri(mapActivity.getBaseContext().getContentResolver(), workingSetUri);
 			documentsCursor.registerDataSetObserver(new MapDataObserver());
 			return null;
 		}
@@ -259,7 +252,9 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 					public void onClick(View arg0) {
 						((ImageButton) findViewById(R.id.everyonesDataButton )).setImageDrawable(mapActivity.getResources().getDrawable(R.drawable.everyoneselected));
 						((ImageButton) findViewById(R.id.myDataButton )).setImageDrawable(mapActivity.getResources().getDrawable(R.drawable.mydeselected));
-						updateMapPoints(false);
+						((RhusApplication)getApplicationContext()).rhusDataSet.setUserDataOnly(false);
+						updateMapPoints();
+
 					}
 				}
 				);
@@ -268,12 +263,12 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 					public void onClick(View arg0) {
 						((ImageButton) findViewById(R.id.everyonesDataButton )).setImageDrawable(mapActivity.getResources().getDrawable(R.drawable.everyonedeselected));
 						((ImageButton) findViewById(R.id.myDataButton )).setImageDrawable(mapActivity.getResources().getDrawable(R.drawable.myselected));
-						updateMapPoints(true);
+						((RhusApplication)getApplicationContext()).rhusDataSet.setUserDataOnly(true);
+						updateMapPoints();
+
 					}
 				}
 				);
-		
-
 		
 		final ImageButton mapOptionsButton = (ImageButton) findViewById(R.id.mapOptionsButton);
 		mapOptionsButton.setOnClickListener(
@@ -292,11 +287,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 					}
 				}		
 				);
-		
-		
-
  
-        
         ( (ImageButton) noteBaloon.findViewById(R.id.close_button)).setOnClickListener(
         		new OnClickListener(){
         			public void onClick(View arg0) {
@@ -306,14 +297,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
         		}
         		);
        
-        tm = (TelephonyManager) getBaseContext().getSystemService(Context.TELEPHONY_SERVICE);
-    	String tmDevice, tmSerial, tmPhone, androidId;
-    	tmDevice = "" + tm.getDeviceId();
-    	tmSerial = "" + tm.getSimSerialNumber();
-    	androidId = "" + android.provider.Settings.Secure.getString(getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
 
-    	UUID deviceUuid = new UUID(androidId.hashCode(), ((long)tmDevice.hashCode() << 32) | tmSerial.hashCode());
-    	deviceId = "ANDROID"+deviceUuid.toString();
 
 	}
 	
@@ -326,9 +310,8 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
         noteBaloon.setLayoutParams(layoutParams);  
 	}
 	
-	private void updateMapPoints(boolean setOnlyUserData){
+	private void updateMapPoints(){
 		if(!updatingMapPoints){
-			onlyUserData = setOnlyUserData;
 			QueryMapPointsTask queryMapPointsTask = new QueryMapPointsTask();
 			queryMapPointsTask.execute(this);
 			updatingMapPoints = true;
@@ -393,7 +376,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 					Drawable pointMarker;
 					String identifier = document.deviceuser_identifier;
 					
-					if( identifier!= null && (identifier.equals(deviceId))){
+					if( identifier!= null && (identifier.equals( ((RhusApplication) getApplicationContext()).rhusDevice.getDeviceId()))){
 						pointMarker = this.getResources().getDrawable(R.drawable.map_device_user_point);
 					} else {
 						pointMarker = this.getResources().getDrawable(R.drawable.mappoint);
@@ -599,7 +582,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 				values.put("thumb", thumbData);
 				values.put("medium", mediumData);
 				
-				values.put("deviceuser_identifier", deviceId);
+				values.put("deviceuser_identifier", ((RhusApplication) getApplicationContext()).rhusDevice.getDeviceId());
 				
 				getContentResolver().insert(RhusDocument.CONTENT_URI, values);
 				

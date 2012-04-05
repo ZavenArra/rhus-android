@@ -28,18 +28,26 @@ public final class R {
         public static final int myselected=0x7f02000e;
         public static final int popbackground=0x7f02000f;
         public static final int redbackground=0x7f020010;
-        public static final int selected_fivepetal=0x7f020011;
-        public static final int selected_fourpetal=0x7f020012;
-        public static final int selected_manypetal=0x7f020013;
-        public static final int selected_sixpetal=0x7f020014;
-        public static final int selected_threepetal=0x7f020015;
-        public static final int test=0x7f020016;
-        public static final int unselected_fivepetal=0x7f020017;
-        public static final int unselected_fourpetal=0x7f020018;
-        public static final int unselected_manypetal=0x7f020019;
-        public static final int unselected_sixpetal=0x7f02001a;
-        public static final int unselected_threepetal=0x7f02001b;
-        public static final int upload_button=0x7f02001c;
+        public static final int selected_composite=0x7f020011;
+        public static final int selected_fivepetal=0x7f020012;
+        public static final int selected_fourpetal=0x7f020013;
+        public static final int selected_fruit=0x7f020014;
+        public static final int selected_irregular=0x7f020015;
+        public static final int selected_manypetal=0x7f020016;
+        public static final int selected_sixpetal=0x7f020017;
+        public static final int selected_threepetal=0x7f020018;
+        public static final int selected_tree=0x7f020019;
+        public static final int test=0x7f02001a;
+        public static final int unselected_compsite=0x7f02001b;
+        public static final int unselected_fivepetal=0x7f02001c;
+        public static final int unselected_fourpetal=0x7f02001d;
+        public static final int unselected_fruit=0x7f02001e;
+        public static final int unselected_irregular=0x7f02001f;
+        public static final int unselected_manypetal=0x7f020020;
+        public static final int unselected_sixpetal=0x7f020021;
+        public static final int unselected_threepetal=0x7f020022;
+        public static final int unselected_tree=0x7f020023;
+        public static final int upload_button=0x7f020024;
     }
     public static final class id {
         public static final int RelativeLayout2=0x7f05000c;
@@ -50,9 +58,12 @@ public final class R {
         public static final int everyonesDataButton=0x7f05000d;
         public static final int five_petals=0x7f050017;
         public static final int four_petals=0x7f050016;
-        public static final int gallery1=0x7f050005;
+        public static final int fruit=0x7f05001d;
+        public static final int gallery=0x7f050005;
+        public static final int icomposite=0x7f05001b;
         public static final int imageButton2=0x7f05000f;
         public static final int imageView1=0x7f05000a;
+        public static final int irregular=0x7f05001a;
         public static final int many_petals=0x7f050019;
         public static final int mapActivityView=0x7f050006;
         public static final int mapOptionsBaloon=0x7f05000b;
@@ -68,6 +79,7 @@ public final class R {
         public static final int three_petals=0x7f050014;
         public static final int thumbnail=0x7f050004;
         public static final int transparent_panel=0x7f050000;
+        public static final int tree=0x7f05001c;
     }
     public static final class layout {
         public static final int baloon=0x7f030000;

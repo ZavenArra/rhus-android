@@ -58,8 +58,8 @@
         android:layout_marginLeft="130dp"
         android:layout_marginTop="38dp"
         android:background="@drawable/popbackground"
-        android:gravity="bottom|clip_horizontal" >
- <!-- android:visibility="invisible" -->
+        android:gravity="bottom|clip_horizontal" 
+ 		android:visibility="invisible" 
         >
 
         <RelativeLayout

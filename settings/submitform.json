@@ -1,0 +1,9 @@
+{
+  'exclusiveOptions':[
+    ['three_petals', 'selected_threepetal', 'unselected_threepetal'],
+    ['four_petals', 'selected_fourpetal', 'unselected_fourpetal'],
+    ['five_petals', 'selected_fivepetal', 'unselected_fivepetal'],
+    ['six_petals', 'selected_sixpetal', 'unselected_sixpetal'],
+    ['many_petals', 'selected_manypetal', 'unselected_manypetal'],
+    ],
+}

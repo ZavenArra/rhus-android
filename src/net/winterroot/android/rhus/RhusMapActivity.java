@@ -10,10 +10,12 @@ import java.util.List;
 import java.util.UUID;
 
 import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import com.dogantekin.baloon.BaloonLayout;
@@ -60,10 +62,11 @@ import android.widget.TextView;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import net.winterroot.android.util.Rhimage;
-import net.winterroot.android.util.RhusDevice;
+import net.winterroot.android.util.*;
 import net.winterroot.android.wildflowers.R;
+import net.winterroot.android.rhus.provider.RhusDocumentContentProvider;
 import net.winterroot.android.rhus.provider.RhusDocument;
+
 
 public class RhusMapActivity extends MapActivity implements LocationListener {
 
@@ -109,20 +112,45 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 			mapView.removeView(noteBaloon);
 			
 			if( loadedMapPoints.containsKey(rhusOverlayItem.documentId()) ){
-				RhusDocument document = loadedMapPoints.get(rhusOverlayItem.documentId());
+				final RhusDocument document = loadedMapPoints.get(rhusOverlayItem.documentId());
 				((TextView)noteBaloon.findViewById(R.id.note_text)).setText(document.created_at);
 				
+				ImageView thumbnail = ((ImageView)noteBaloon.findViewById(R.id.thumbnail));
 				if(document.thumb != null){
 					ByteArrayInputStream is = new ByteArrayInputStream(document.thumb);
 					Drawable drw = Drawable.createFromStream(is, "thumbnailImage");
-					((ImageView)noteBaloon.findViewById(R.id.thumbnail)).setBackgroundDrawable(drw);
+					thumbnail.setImageDrawable(drw);
 				} else {
-					((ImageView)noteBaloon.findViewById(R.id.thumbnail)).setBackgroundDrawable(null);
+					thumbnail.setImageDrawable(null);
 				}
-
-
 				
-				//Drawable	thumb =  new BitmapDrawable(BitmapFactory.decodeByteArray(b, 0, b.length));
+				thumbnail.setOnClickListener(	new OnClickListener(){
+					public void onClick(View arg0) {
+		
+						Intent intent = new Intent("net.winterroot.android.rhus.action.DOCUMENTDETAIL");
+						
+						//Use Jackson to write document to json, and pass as string to the next intent
+						ObjectMapper mapper = new ObjectMapper(); 
+						String documentJson = null;
+						try {
+							documentJson = mapper.writeValueAsString(document);
+							Log.v(TAG, documentJson);
+
+						} catch (JsonGenerationException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (JsonMappingException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						intent.putExtra(RhusDocumentDetailActivity.DOCUMENT_EXTRA, documentJson);
+						startActivity(intent);
+
+					}
+				});
 
 				mapView.addView(noteBaloon, new MapView.LayoutParams(200,200,geoPoint,MapView.LayoutParams.BOTTOM_CENTER));
 				noteBaloon.setVisibility(View.VISIBLE);
@@ -131,12 +159,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 
 			mapController.animateTo(geoPoint);
 	
-
-			//mapView.setEnabled(false);       
-
 		}
-				
-
 	}
 	
 	private class QueryMapPointsTask extends AsyncTask<RhusMapActivity, Void, Void> {
@@ -148,8 +171,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 			RhusMapActivity mapActivity = mapActivities[0];
 			
 			Uri workingSetUri = ((RhusApplication) getApplicationContext()).rhusDataSet.getQueryUri();
-			documentsCursor = 	documentsCursor = managedQuery(workingSetUri, null,
-					null, null, null);
+			documentsCursor = 	documentsCursor = managedQuery(workingSetUri, null, null, null, null);
 	
 			documentsCursor.setNotificationUri(mapActivity.getBaseContext().getContentResolver(), workingSetUri);
 			documentsCursor.registerDataSetObserver(new MapDataObserver());
@@ -296,7 +318,6 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
         			}
         		}
         		);
-       
 
 
 	}
@@ -565,7 +586,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 				values.put("longitude", longitude);
 				
 				
-				Bitmap thumb = Rhimage.resizeBitMapImage1(imageFile.getAbsolutePath(), 50, 50);
+				Bitmap thumb = Rhimage.resizeBitMapImage1(imageFile.getAbsolutePath(), 100, 100);
 				Log.i("BINARY", thumb.toString());
 				Bitmap medium = Rhimage.resizeBitMapImage1(imageFile.getAbsolutePath(), 320, 480);
 				Log.i(TAG, medium.toString());

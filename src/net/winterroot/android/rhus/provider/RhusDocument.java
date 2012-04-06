@@ -33,8 +33,8 @@ public class RhusDocument {
     public String latitude;
     public String created_at;
     public String deviceuser_identifier;
-    public byte[] thumb;
-    public byte[] medium;
+    public byte[] thumb = null;
+    public byte[] medium = null;
     public String reporter;
     public String comment;
 }

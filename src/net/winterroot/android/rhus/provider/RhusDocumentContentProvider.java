@@ -93,24 +93,6 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
 
     }
 
-    /*
-     * Don't think this is necessary
-     * */
-    /*
-    public RhusDocumentContentProvider(Context setAppContext) {
-    	appContext = setAppContext;
-        System.out.println("here");
-        //super(new FileHandlerFactory(FILE_CACHE_DIR));
-        //init();
-    }
-   
-    /*
-    
-    private void init() {
-        mOpenHelper = new DatabaseHelper(getContext(), DATABASE_NAME, null);
-        mDb = mOpenHelper.getWritableDatabase();
-        mFileHandlerFactory = new FileHandlerFactory(FILE_CACHE_DIR);
-    }
     */
 
     

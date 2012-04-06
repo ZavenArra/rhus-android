@@ -228,14 +228,27 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 		startActivity(intent);
 		*/
 		
+		
+		
 		startLocationUpdates();
 		
         setContentView(R.layout.map);
         mapView = (MapView) findViewById(R.id.mapmain);
         mapView.setBuiltInZoomControls(false);
         mapController = mapView.getController();
-        mapController.setCenter(center);
-        mapController.zoomToSpan(fullLatitudeDelta, fullLongitudeDelta);
+        
+        //TODO: getLastNon.. is deprecated.  Convert this to user the normal 'bundle' paradigm
+        RhusMapState mapState = (RhusMapState) getLastNonConfigurationInstance();
+        if(mapState != null){
+            mapController.setCenter(mapState.center);
+            mapController.zoomToSpan(mapState.latitudeSpan, mapState.longitudeSpan);
+        } else {
+        	mapController.setCenter(center);
+        	mapController.zoomToSpan(fullLatitudeDelta, fullLongitudeDelta);
+        }
+        
+        
+        
         loadedMapPoints = new HashMap<String, RhusDocument>();
 		
 		Drawable drawable = this.getResources().getDrawable(R.drawable.ic_launcher);
@@ -488,6 +501,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 				+ Integer.toString(getChangingConfigurations(), 16));
 	}
 
+	
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
 		// Save instance-specific state
@@ -502,10 +516,19 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 
 	}
 
+	
+	
+	
 	@Override
 	public Object onRetainNonConfigurationInstance() {
 		Log.i(TAG, "onRetainNonConfigurationInstance");
-		return new Integer(getTaskId());
+
+		RhusMapState mapState = new RhusMapState(
+				mapView.getMapCenter(),
+				mapView.getLatitudeSpan(),
+				mapView.getLongitudeSpan()
+				);
+		return mapState;
 	}
 
 	@Override
@@ -564,7 +587,9 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 				
 				Log.i(TAG, imageUri.toString());
 				File imageFile = Rhimage.convertImageUriToFile(imageUri, this);
-				Log.i(TAG, imageFile.toString());
+				int orientation = Rhimage.getOrientation(getBaseContext(), imageUri);
+
+				Log.i(TAG, "Orientation"+orientation);
 				
 				ContentValues values = new ContentValues();
 				
@@ -586,9 +611,9 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 				values.put("longitude", longitude);
 				
 				
-				Bitmap thumb = Rhimage.resizeBitMapImage1(imageFile.getAbsolutePath(), 100, 100);
+				Bitmap thumb = Rhimage.resizeBitMapImage1(imageFile.getAbsolutePath(), 100, 100, orientation);
 				Log.i("BINARY", thumb.toString());
-				Bitmap medium = Rhimage.resizeBitMapImage1(imageFile.getAbsolutePath(), 320, 480);
+				Bitmap medium = Rhimage.resizeBitMapImage1(imageFile.getAbsolutePath(), 320, 480, orientation);
 				Log.i(TAG, medium.toString());
 
 

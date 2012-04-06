@@ -3,12 +3,15 @@ package net.winterroot.android.util;
 import java.io.File;
 
 import android.app.Activity;
+import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.BitmapFactory.Options;
+import android.graphics.Matrix;
 import android.net.Uri;
 import android.provider.MediaStore;
+import android.util.Log;
 
 public class Rhimage {
 
@@ -27,6 +30,11 @@ public class Rhimage {
 				int orientation_ColumnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.ImageColumns.ORIENTATION);
 				if (cursor.moveToFirst()) {
 					String orientation =  cursor.getString(orientation_ColumnIndex);
+					if(orientation == null){
+						Log.v("RHIMAGE Orientation", "Null Orientation");
+					} else {
+						Log.v("RHIMAGE Orientation", orientation);
+					}
 					return new File(cursor.getString(file_ColumnIndex));
 				}
 				return null;
@@ -38,7 +46,7 @@ public class Rhimage {
 		}
 		
 		public static Bitmap resizeBitMapImage1(String filePath, int targetWidth,
-	            int targetHeight) {
+	            int targetHeight, int orientation) {
 	        Bitmap bitMapImage = null;
 	        // First, get the dimensions of the image
 	        Options options = new Options();
@@ -66,6 +74,14 @@ public class Rhimage {
 	            try {
 	                options.inSampleSize = (int) sampleSize;
 	                bitMapImage = BitmapFactory.decodeFile(filePath, options);
+	                if(orientation > 0){
+	                	 Matrix matrix = new Matrix();
+	                     matrix.postRotate(orientation);
+
+	                     bitMapImage = Bitmap.createBitmap(bitMapImage, 0, 0, bitMapImage.getWidth(),
+	                    		 bitMapImage.getHeight(), matrix, true);
+
+	                }
 
 	                break;
 	            } catch (Exception ex) {
@@ -79,6 +95,19 @@ public class Rhimage {
 
 	        return bitMapImage;
 	    }
+
+		public static int getOrientation(Context context, Uri photoUri) {
+		    /* it's on the external media. */
+		    Cursor cursor = context.getContentResolver().query(photoUri,
+		            new String[] { MediaStore.Images.ImageColumns.ORIENTATION }, null, null, null);
+
+		    if (cursor.getCount() != 1) {
+		        return -1;
+		    }
+
+		    cursor.moveToFirst();
+		    return cursor.getInt(0);
+		}
 
 	
 }

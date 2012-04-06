@@ -21,21 +21,17 @@ import org.ektorp.ViewResult;
 import org.ektorp.ViewResult.Row;
 import org.ektorp.support.DesignDocument;
 
-
-
-
 import net.winterroot.android.couchbasemobile.provider.CouchbaseMobileContentProvider;
 import net.winterroot.android.couchbasemobile.provider.CouchbaseMobileEktorpAsyncTask;
 import net.winterroot.android.couchbasemobile.provider.CouchCursor;
-
 import net.winterroot.android.rhus.*;
+import net.winterroot.android.rhus.configuration.RhusDevelopmentConfiguration;
 
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
-
 import android.net.Uri;
 import android.text.format.DateFormat;
 import android.util.Log;
@@ -49,7 +45,7 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
     private static final String FILE_CACHE_DIR =
     		"/data/data/net.winterroot.net.android.rhus/file_cache";
     
-    private static String REPLICATION_URL = "http://data.winterroot.net:5984/squirrels_of_the_earth";
+    private static String REPLICATION_URL = RhusDevelopmentConfiguration.REPLICATION_URL;
     private static String BUCKET_NAME = "documents";
 	
     private static final int DOCUMENTS = 1;			  //get all documents (possibly filtered)

@@ -180,8 +180,13 @@ abstract public class CouchbaseMobileContentProvider extends ContentProvider {
 
 	
 	public void startReplications() {
+		if(getReplicationUrl() == null){
+			Log.v(TAG, "No replication URL, skipping replications");
+			return;
+		}
 		Log.v(TAG, "starting replications"+getReplicationUrl()+getBucketName());
 
+		
 		pushReplicationCommand = new ReplicationCommand.Builder()
 			.source(getBucketName())
 			.target(getReplicationUrl())

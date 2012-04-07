@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
@@ -27,6 +28,7 @@ import com.google.android.maps.Overlay;
 import com.google.android.maps.OverlayItem;
 
 import android.app.Activity;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -50,6 +52,7 @@ import android.graphics.BitmapFactory.Options;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -83,9 +86,10 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 	private final int fullLatitudeDelta = (int) (50 * 1000000);
 	private final int fullLongitudeDelta = (int) (50 * 1000000);
 	
-	
-	//TODO:  imageUri is the current activity attribute, define and save it for later usage (also in onSaveInstanceState)
+
+	//Taking Pictures
 	private Uri imageUri;
+	private long captureTime = 0;
 	
 	private LocationManager locationManager;
 	private String bestProvider;
@@ -274,6 +278,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 						Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 						intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
 						intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1);
+						captureTime = new Date().getTime();
 						startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
 
 					}
@@ -446,13 +451,21 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 
 
 		// List all providers:
+		if( !locationManager.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER ) ) {
+			Toast.makeText( this, "Please turn on GPS", Toast.LENGTH_SHORT ).show();
+        	Intent myIntent = new Intent( Settings.ACTION_SECURITY_SETTINGS );
+        	startActivity(myIntent);
+        	return;
+		}
+		
+		/*
 		List<String> providers = locationManager.getAllProviders();
 		for (String provider : providers) {
 			LocationProvider info = locationManager.getProvider(provider);
 			Log.i("LOCATION", "huh"+info.toString() + "\n\n");
 		}
+		*/
 
-		
 		Criteria criteria = new Criteria();
 		criteria.setAccuracy(Criteria.ACCURACY_FINE);
 		bestProvider = locationManager.getBestProvider(criteria, false);
@@ -471,7 +484,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 		Log.i(TAG, "onResume");
 		
 		Log.i("LOCATION", "Resuming location updates");
-		//locationManager.requestLocationUpdates(bestProvider, 1000, 1, (LocationListener) this);
+		startLocationUpdates();
 
 	}
 
@@ -587,9 +600,12 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 				
 				Log.i(TAG, imageUri.toString());
 				File imageFile = Rhimage.convertImageUriToFile(imageUri, this);
-				int orientation = Rhimage.getOrientation(getBaseContext(), imageUri);
+				//int orientation = Rhimage.getOrientation(getBaseContext(), imageUri);
 
-				Log.i(TAG, "Orientation"+orientation);
+				//Orientation bug
+				//This proposes a solution
+				//http://stackoverflow.com/questions/8450539/images-taken-with-action-image-capture-always-returns-1-for-exifinterface-tag-or/8864367#8864367
+				//Log.i(TAG, "Orientation"+orientation);
 				
 				ContentValues values = new ContentValues();
 				
@@ -602,7 +618,11 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 					Log.i(TAG, "Lst known location returned NULL, not saving this datapoint");
 					//TODO: Handle this exception somehow, probably by kicking them to a map where they can enter their location manually
 					//or allowing them to try to get a geofix again. 
-					return;
+					//return;
+					loc = new Location("gps");
+					loc.setLatitude(42.35*1000000);
+					loc.setLongitude(83.35*1000000);
+					
 				}
 				double latitude = loc.getLatitude();
 				double longitude = loc.getLongitude();
@@ -610,10 +630,36 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 				values.put("latitude", latitude);
 				values.put("longitude", longitude);
 				
+				//Get correct rotation information
+				int rotation =-1;
+				long fileSize = imageFile.length();
+
+				Cursor mediaCursor = managedQuery(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, new String[] {MediaStore.Images.ImageColumns.ORIENTATION, MediaStore.MediaColumns.SIZE }, MediaStore.MediaColumns.DATE_ADDED + ">=?", new String[]{String.valueOf(captureTime/1000 - 1)}, MediaStore.MediaColumns.DATE_ADDED + " desc");
+
+				if (mediaCursor != null && captureTime != 0 && mediaCursor.getCount() !=0 ) {
+					while(mediaCursor.moveToNext()){
+						long size = mediaCursor.getLong(1);
+						//Extra check to make sure that we are getting the orientation from the proper file
+						if(size == fileSize){
+							rotation = mediaCursor.getInt(0);
+							break;
+						}
+					}
+				} else if(rotation == -1){
+					ExifInterface exif = null;
+					try {
+						exif = new ExifInterface(imageFile.getPath());
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					rotation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, -1);
+				}
+				captureTime = 0;
 				
-				Bitmap thumb = Rhimage.resizeBitMapImage1(imageFile.getAbsolutePath(), 100, 100, orientation);
+				Bitmap thumb = Rhimage.resizeBitMapImage1(imageFile.getAbsolutePath(), 100, 100, rotation);
 				Log.i("BINARY", thumb.toString());
-				Bitmap medium = Rhimage.resizeBitMapImage1(imageFile.getAbsolutePath(), 320, 480, orientation);
+				Bitmap medium = Rhimage.resizeBitMapImage1(imageFile.getAbsolutePath(), 320, 480, rotation);
 				Log.i(TAG, medium.toString());
 
 
@@ -654,6 +700,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 		Log.i("LOCATION", "LocationChanged"+location.toString() );
 		Log.i("LOCATION", locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER).toString() );
 		lastLocation = location;
+	
 		
 	}
 
@@ -663,9 +710,8 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 	}
 
 	public void onProviderEnabled(String provider) {
-		// TODO Auto-generated method stub
 		Log.i(TAG, "Provider Enabled" );
-
+		startLocationUpdates();
 		
 	}
 

@@ -1,7 +1,5 @@
 package net.winterroot.android.rhus.provider;
 
-//import com.oreilly.demo.pa.finchvideo.provider.FileHandlerFactory;
-
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.Date;
@@ -41,10 +39,10 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
 	
 	private static final String TAG = "RhusDocumentContentProvider";
 	
-	//TODO: This should be abstract??
     private static final String FILE_CACHE_DIR =
     		"/data/data/net.winterroot.net.android.rhus/file_cache";
     
+    //Change this manually to build different versions of the app, or set up build targets using ant, etc.
     private static String REPLICATION_URL = RhusDevelopmentConfiguration.REPLICATION_URL;
     private static String BUCKET_NAME = "documents";
 	
@@ -118,8 +116,8 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
 		documentNode.put("longitude", values.getAsDouble("longitude").toString() );
 		documentNode.put("created_at", new StdDateFormat().format(new Date()) );
 		documentNode.put("deviceuser_identifier", values.getAsString("deviceuser_identifier"));
-		documentNode.put("thumbAndroid1", JsonNodeFactory.instance.binaryNode(values.getAsByteArray("thumb")));
-		documentNode.put("mediumAndroid1",JsonNodeFactory.instance.binaryNode(values.getAsByteArray("medium")));
+		documentNode.put("thumb", JsonNodeFactory.instance.binaryNode(values.getAsByteArray("thumb")));
+		documentNode.put("medium",JsonNodeFactory.instance.binaryNode(values.getAsByteArray("medium")));
 
 		//Skip matching the URI for the moment
 
@@ -150,7 +148,6 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
 	
 	@Override
 	public String getReplicationUrl(){
-		Log.v(TAG, REPLICATION_URL);
 		return REPLICATION_URL;
 	}
 	

@@ -47,6 +47,8 @@ public class Rhimage {
 		
 		public static Bitmap resizeBitMapImage1(String filePath, int targetWidth,
 	            int targetHeight, int orientation) {
+			Log.v("RHIMAGE Orientation", String.valueOf(orientation) );
+
 	        Bitmap bitMapImage = null;
 	        // First, get the dimensions of the image
 	        Options options = new Options();

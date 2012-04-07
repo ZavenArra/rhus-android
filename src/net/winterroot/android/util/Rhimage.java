@@ -60,9 +60,10 @@ public class Rhimage {
 	        Boolean scaleByHeight = Math.abs(options.outHeight - targetHeight) >= Math
 	                .abs(options.outWidth - targetWidth);
 
+	        
+	        // Load, scaling to smallest power of 2 that'll get it <= desired
+            // dimensions
 	        if (options.outHeight * options.outWidth * 2 >= 1638) {
-	            // Load, scaling to smallest power of 2 that'll get it <= desired
-	            // dimensions
 	            sampleSize = scaleByHeight ? options.outHeight / targetHeight
 	                    : options.outWidth / targetWidth;
 	            sampleSize = (int) Math.pow(2d,

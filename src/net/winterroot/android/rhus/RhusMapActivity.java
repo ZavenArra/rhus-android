@@ -600,12 +600,6 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 				
 				Log.i(TAG, imageUri.toString());
 				File imageFile = Rhimage.convertImageUriToFile(imageUri, this);
-				//int orientation = Rhimage.getOrientation(getBaseContext(), imageUri);
-
-				//Orientation bug
-				//This proposes a solution
-				//http://stackoverflow.com/questions/8450539/images-taken-with-action-image-capture-always-returns-1-for-exifinterface-tag-or/8864367#8864367
-				//Log.i(TAG, "Orientation"+orientation);
 				
 				ContentValues values = new ContentValues();
 				
@@ -636,6 +630,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 
 				Cursor mediaCursor = managedQuery(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, new String[] {MediaStore.Images.ImageColumns.ORIENTATION, MediaStore.MediaColumns.SIZE }, MediaStore.MediaColumns.DATE_ADDED + ">=?", new String[]{String.valueOf(captureTime/1000 - 1)}, MediaStore.MediaColumns.DATE_ADDED + " desc");
 
+				//Code from http://stackoverflow.com/questions/8450539/images-taken-with-action-image-capture-always-returns-1-for-exifinterface-tag-or/8864367#8864367
 				if (mediaCursor != null && captureTime != 0 && mediaCursor.getCount() !=0 ) {
 					while(mediaCursor.moveToNext()){
 						long size = mediaCursor.getLong(1);

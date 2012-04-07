@@ -55,6 +55,7 @@ import android.provider.MediaStore;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -265,6 +266,13 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 		((ImageButton) findViewById(R.id.cameraButton)).setOnClickListener(
 				new OnClickListener(){
 					public void onClick(View arg0) {
+						//Check that we have a geo-fix
+						if(lastLocation == null){
+							Toast.makeText( getBaseContext(), "You do not currently have a geo-fix.  Please make sure your phone can 'see' the GPS satellites (make sure you are outside) and retry.", Toast.LENGTH_SHORT ).show();
+							return;
+
+						}
+						
 						//define the file-name to save photo taken by Camera activity
 						String fileName = "new-photo-name.jpg";
 						//create parameters for Intent with filename
@@ -452,6 +460,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 
 		// List all providers:
 		if( !locationManager.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER ) ) {
+			//.setGravity(Gravity.TOP, 0, 0)
 			Toast.makeText( this, "Please turn on GPS", Toast.LENGTH_SHORT ).show();
         	Intent myIntent = new Intent( Settings.ACTION_SECURITY_SETTINGS );
         	startActivity(myIntent);

@@ -82,10 +82,10 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 
 	// Map View Defaults
 	private final GeoPoint center = new GeoPoint( (int) (42.35*1000000), (int) (-83.07*1000000) );
-//	private final int fullLatitudeDelta = (int) (.05 * 1000000);
-//	private final int fullLongitudeDelta = (int) (.05 * 1000000);
-	private final int fullLatitudeDelta = (int) (50 * 1000000);
-	private final int fullLongitudeDelta = (int) (50 * 1000000);
+	private final int fullLatitudeDelta = (int) (.05 * 1000000);
+ 	private final int fullLongitudeDelta = (int) (.05 * 1000000);
+	//private final int fullLatitudeDelta = (int) (50 * 1000000);
+	//private final int fullLongitudeDelta = (int) (50 * 1000000);
 	
 
 	//Taking Pictures

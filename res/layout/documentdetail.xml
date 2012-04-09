@@ -1,16 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent" >
-
-    <ImageView
-        android:id="@+id/detailImage"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="218dp"
-        android:src="@drawable/test" />
+    android:layout_height="match_parent"
+    android:gravity="fill_vertical" >
 
     <ImageButton
         android:id="@+id/closeDocumentDetail"
@@ -81,5 +73,13 @@
         android:layout_marginBottom="63dp"
         android:background="@null"
         android:src="@drawable/info" />
+
+    <ImageView
+        android:id="@+id/detailImage"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:src="@drawable/test" />
 
 </RelativeLayout>

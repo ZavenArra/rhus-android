@@ -56,8 +56,8 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
     private static final String dDocId = "_design/rhus";
     public static final String userDocsViewName = "userDocuments";
 	public static final String allDocsViewName = "allDocuments";
-    private static final String userDocsMapFunction = "function(doc) { emit([doc.deviceuser_identifier, doc.created_at],{'id':doc._id, 'thumb':doc.thumb, 'medium':doc.medium, 'latitude':doc.latitude, 'longitude':doc.longitude, 'reporter':doc.reporter, 'comment':doc.comment, 'created_at':Date(doc.created_at).toDateString(), 'deviceuser_identifier':doc.deviceuser_identifier } );}";
-    private static final String allDocsMapFunction = "function(doc) { emit(doc.created_at,{'id':doc._id, 'thumb':doc.thumb, 'medium':doc.medium, 'latitude':doc.latitude, 'longitude':doc.longitude, 'reporter':doc.reporter, 'comment':doc.comment, 'created_at':Date(doc.created_at).toDateString(), 'deviceuser_identifier':doc.deviceuser_identifier } );}";
+    private static final String userDocsMapFunction = "function(doc) { emit([doc.deviceuser_identifier, doc.created_at],{'id':doc._id, 'thumb':doc.thumb, 'medium':doc.medium, 'latitude':doc.latitude, 'longitude':doc.longitude, 'reporter':doc.reporter, 'comment':doc.comment, 'created_at':doc.created_at, 'deviceuser_identifier':doc.deviceuser_identifier } );}";
+    private static final String allDocsMapFunction = "function(doc) { emit(doc.created_at,{'id':doc._id, 'thumb':doc.thumb, 'medium':doc.medium, 'latitude':doc.latitude, 'longitude':doc.longitude, 'reporter':doc.reporter, 'comment':doc.comment, 'created_at':doc.created_at, 'deviceuser_identifier':doc.deviceuser_identifier } );}";
     
     private static UriMatcher sUriMatcher;
 	

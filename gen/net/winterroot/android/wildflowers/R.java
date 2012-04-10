@@ -77,14 +77,14 @@ public final class R {
         public static final int mapmain=0x7f050011;
         public static final int myDataButton=0x7f050017;
         public static final int name=0x7f050007;
-        public static final int note_text=0x7f050003;
+        public static final int note_text=0x7f050002;
         public static final int relativeLayout1=0x7f05000e;
         public static final int six_petals=0x7f05001f;
         public static final int submitFormActivityView=0x7f050019;
         public static final int submit_button=0x7f05001a;
         public static final int textView2=0x7f050009;
         public static final int three_petals=0x7f05001b;
-        public static final int thumbnail=0x7f050002;
+        public static final int thumbnail=0x7f050003;
         public static final int transparent_panel=0x7f050000;
         public static final int tree=0x7f050023;
     }

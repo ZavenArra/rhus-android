@@ -53,11 +53,16 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
     private static final int USER_DOCUMENTS = 5;
     private static final int USER_IDENTIFIER = 6;
     
+    //TODO: This design document should be keep as a JSON text file, the below is not a superb way to handle things
     private static final String dDocId = "_design/rhus";
     public static final String userDocsViewName = "userDocuments";
 	public static final String allDocsViewName = "allDocuments";
-    private static final String userDocsMapFunction = "function(doc) {  niceDate = (date.getMonth()+1)+\"/\"+date.getDate()+\"/\"+date.getFullYear(); emit([doc.deviceuser_identifier, doc.created_at],{'id':doc._id, 'thumb':doc.thumb, 'medium':doc.medium, 'latitude':doc.latitude, 'longitude':doc.longitude, 'reporter':doc.reporter, 'comment':doc.comment, 'created_at':niceDate, 'deviceuser_identifier':doc.deviceuser_identifier } );}";
-    private static final String allDocsMapFunction = "function(doc) {   niceDate = (date.getMonth()+1)+\"/\"+date.getDate()+\"/\"+date.getFullYear(); emit(doc.created_at,{'id':doc._id, 'thumb':doc.thumb, 'medium':doc.medium, 'latitude':doc.latitude, 'longitude':doc.longitude, 'reporter':doc.reporter, 'comment':doc.comment, 'created_at':niceDate, 'deviceuser_identifier':doc.deviceuser_identifier } );}";
+    private static final String userDocsMapFunction = "function(doc) {  date = new Date(doc.created_at.substr(0,19)); niceDate = (date.getMonth()+1)+\"/\"+date.getDate()+\"/\"+date.getFullYear(); emit([doc.deviceuser_identifier, doc.created_at],{'id':doc._id, 'thumb':doc.thumb, 'medium':doc.medium, 'latitude':doc.latitude, 'longitude':doc.longitude, 'reporter':doc.reporter, 'comment':doc.comment, 'created_at':niceDate, 'deviceuser_identifier':doc.deviceuser_identifier } );}";
+    private static final String allDocsMapFunction = "function(doc) {  date = new Date(doc.created_at.substr(0,19)); niceDate = (date.getMonth()+1)+\"/\"+date.getDate()+\"/\"+date.getFullYear(); emit(doc.created_at,{'id':doc._id, 'thumb':doc.thumb, 'medium':doc.medium, 'latitude':doc.latitude, 'longitude':doc.longitude, 'reporter':doc.reporter, 'comment':doc.comment, 'created_at':niceDate, 'deviceuser_identifier':doc.deviceuser_identifier } );}";
+    
+    private static final String replicationFilter = "  function(doc, req) {"+
+    		  "return \"_design/\" !== doc._id.substr(0, 8)" +
+    		  "}";
     
     private static UriMatcher sUriMatcher;
 	

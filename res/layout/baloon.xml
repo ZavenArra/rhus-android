@@ -10,44 +10,42 @@
 
     <RelativeLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="wrap_content"
-        android:layout_height="74dp" >
-       
+        android:layout_width="130dp"
+        android:layout_height="130dp" >
+
         <ImageButton
             android:id="@+id/close_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
-            android:paddingRight="5dp"       
             android:layout_marginTop="5dp"
-            android:src="@drawable/close"
             android:background="@null"
             android:clickable="true"
-        />
+            android:paddingRight="5dp"
+            android:src="@drawable/close" />
+
+        <ImageView
+            android:id="@+id/thumbnail"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_alignParentLeft="true"
+            android:scaleType="fitCenter"
+            android:src="@drawable/test" />
 
         <TextView
             android:id="@+id/note_text"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_alignBottom="@+id/close_button"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@+id/thumbnail"
+            android:layout_marginTop="16dp"
             android:maxLength="160"
-            android:maxLines="4"
-            android:minLines="4"
+            android:maxLines="1"
+            android:minLines="1"
             android:paddingLeft="5dp"
             android:paddingRight="5dp"
-            android:text=""
             android:textSize="5pt" />
 
-        <ImageView
-            android:id="@+id/thumbnail"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:layout_alignParentLeft="true"
-            android:layout_alignTop="@+id/note_text"
-            android:layout_marginLeft="8dp"
-            android:layout_marginTop="8dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/test" />
-
     </RelativeLayout>
+
 </com.dogantekin.baloon.BaloonLayout>

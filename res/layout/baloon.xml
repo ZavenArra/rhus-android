@@ -29,7 +29,7 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="22dp"
-            android:maxLength="120"
+            android:maxLength="100"
             android:maxLines="1"
             android:minLines="1"
             android:paddingLeft="5dp"

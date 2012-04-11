@@ -10,6 +10,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
+        android:background="@null"
         android:src="@drawable/close" />
 
     <RelativeLayout
@@ -18,15 +19,16 @@
         android:layout_height="100dp"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
-        android:background="@drawable/barbackground"
-        android:visibility="invisible"
+        android:background="@drawable/detail_background"
+        android:visibility="invisible" 
          >
 
         <TextView
             android:id="@+id/name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
+            android:layout_below="@+id/closeinfo"
+            android:layout_marginLeft="16dp"
             android:text="Name" />
 
         <TextView
@@ -40,26 +42,32 @@
 
         <TextView
             android:id="@+id/comments"
-            android:layout_width="wrap_content"
+            android:layout_width="250dp"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
+            android:layout_below="@+id/name"
+            android:layout_marginLeft="16dp"
+            android:maxLines="1"
+            android:minLines="3"
             android:text="comments" />
 
         <TextView
             android:id="@+id/location"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_toRightOf="@+id/comments"
+            android:layout_marginLeft="16dp"
+            android:layout_below="@+id/date"
             android:text="location" />
 
         <ImageButton
             android:id="@+id/closeinfo"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:layout_alignParentRight="true"
             android:layout_alignParentTop="true"
-           
+            android:layout_marginTop="4dp"
+            android:layout_marginRight="4dp"
+            android:background="@null"
             android:src="@drawable/close" />
 
     </RelativeLayout>

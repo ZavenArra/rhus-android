@@ -64,16 +64,6 @@
 
     </RelativeLayout>
 
-    <ImageButton
-        android:id="@+id/infoButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/relativeLayout1"
-        android:layout_alignParentRight="true"
-        android:layout_marginBottom="63dp"
-        android:background="@null"
-        android:src="@drawable/info" />
-
     <ImageView
         android:id="@+id/detailImage"
         android:layout_width="match_parent"
@@ -81,5 +71,14 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
         android:src="@drawable/test" />
+
+    <ImageButton
+        android:id="@+id/infoButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignTop="@+id/infoView"
+        android:background="@null"
+        android:src="@drawable/info" />
 
 </RelativeLayout>

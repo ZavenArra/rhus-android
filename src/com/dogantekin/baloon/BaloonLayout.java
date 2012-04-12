@@ -32,7 +32,7 @@ public class BaloonLayout extends LinearLayout {
        
         RectF baloonRect = new RectF();
         baloonRect.set(0,0, getMeasuredWidth(), 2*(getMeasuredHeight()/3));
-        panelPaint.setARGB(230, 0, 0, 0);       
+        panelPaint.setARGB(230, 50, 0, 0);       
         canvas.drawRoundRect(baloonRect, 10, 10, panelPaint);
        
         Path baloonTip = new Path();

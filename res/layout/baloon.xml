@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.dogantekin.baloon.BaloonLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/transparent_panel"
-    android:layout_width="120dp"
-    android:layout_height="130dp"
+    android:layout_width="110dp"
+    android:layout_height="170dp"
     android:paddingBottom="5dp"
     android:paddingLeft="5dp"
     android:paddingRight="5dp"
@@ -10,13 +10,13 @@
 
     <RelativeLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="130dp"
-        android:layout_height="130dp" >
+        android:layout_width="110dp"
+        android:layout_height="170dp" >
 
         <ImageButton
             android:id="@+id/close_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:layout_alignParentRight="true"
             android:layout_marginTop="5dp"
             android:background="@null"
@@ -28,8 +28,9 @@
             android:id="@+id/note_text"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
+            android:layout_alignRight="@+id/thumbnail"
             android:layout_marginBottom="22dp"
-            android:maxLength="100"
+            android:maxLength="80"
             android:maxLines="1"
             android:minLines="1"
             android:paddingLeft="5dp"

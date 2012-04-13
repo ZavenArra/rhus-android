@@ -134,25 +134,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 					public void onClick(View arg0) {
 		
 						Intent intent = new Intent("net.winterroot.android.rhus.action.DOCUMENTDETAIL");
-						
-						//Use Jackson to write document to json, and pass as string to the next intent
-						ObjectMapper mapper = new ObjectMapper(); 
-						String documentJson = null;
-						try {
-							documentJson = mapper.writeValueAsString(document);
-							Log.v(TAG, documentJson);
-
-						} catch (JsonGenerationException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						} catch (JsonMappingException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						} catch (IOException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-						intent.putExtra(RhusDocumentDetailActivity.DOCUMENT_EXTRA, documentJson);
+						intent.putExtra(RhusDocumentDetailActivity.DOCUMENT_EXTRA, document );
 						startActivity(intent);
 
 					}
@@ -235,6 +217,8 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 		*/
 		
 		
+	//	Intent intent = new Intent("net.winterroot.android.rhus.action.DOCUMENTDETAIL");
+	//	startActivity(intent);
 		
 		startLocationUpdates();
 		

@@ -48,7 +48,7 @@
             android:src="@drawable/map" />
 
         <ImageButton
-            android:id="@+id/imageButton1"
+            android:id="@+id/backer_button"
             android:layout_width="45dp"
             android:layout_height="match_parent"
             android:layout_alignParentTop="true"

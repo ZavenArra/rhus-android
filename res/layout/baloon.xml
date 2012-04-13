@@ -13,23 +13,27 @@
         android:layout_width="110dp"
         android:layout_height="170dp" >
 
-        <ImageButton
-            android:id="@+id/close_button"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:layout_alignParentRight="true"
-            android:layout_marginTop="5dp"
-            android:background="@null"
-            android:clickable="true"
-            android:paddingRight="5dp"
-            android:src="@drawable/close" />
+        <RelativeLayout
+            android:id="@+id/thumbnail_container"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@+id/note_text" >
+
+            <ImageView
+                android:id="@+id/thumbnail"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/test" />
+        </RelativeLayout>
 
         <TextView
             android:id="@+id/note_text"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignRight="@+id/thumbnail"
-            android:layout_marginBottom="22dp"
+            android:layout_width="80dp"
+            android:layout_height="20dp"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
             android:maxLength="80"
             android:maxLines="1"
             android:minLines="1"
@@ -37,15 +41,15 @@
             android:paddingRight="5dp"
             android:textSize="5pt" />
 
-        <ImageView
-            android:id="@+id/thumbnail"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:layout_alignParentLeft="true"
-            android:layout_below="@+id/close_button"
-            android:scaleType="fitCenter"
-            android:src="@drawable/test" />
-
+        <ImageButton
+            android:id="@+id/close_button"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_above="@+id/thumbnail_container"
+            android:layout_toRightOf="@+id/thumbnail_container"
+            android:background="@null"
+            android:clickable="true"
+            android:src="@drawable/close" />
     </RelativeLayout>
 
 </com.dogantekin.baloon.BaloonLayout>

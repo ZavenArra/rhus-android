@@ -54,6 +54,7 @@ public final class R {
     }
     public static final class id {
         public static final int RelativeLayout2=0x7f050016;
+        public static final int backer_button=0x7f050014;
         public static final int cameraButton=0x7f050012;
         public static final int cancel_button=0x7f05001c;
         public static final int closeDocumentDetail=0x7f050006;
@@ -68,7 +69,6 @@ public final class R {
         public static final int fruit=0x7f050024;
         public static final int gallery=0x7f050005;
         public static final int icomposite=0x7f050022;
-        public static final int imageButton1=0x7f050014;
         public static final int imageView1=0x7f050000;
         public static final int infoButton=0x7f05000f;
         public static final int infoView=0x7f050007;

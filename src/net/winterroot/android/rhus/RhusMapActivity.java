@@ -108,6 +108,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 	RelativeLayout mapOptionsBaloon;
 	boolean mapOptionsShowing = false;
 	boolean updatingMapPoints = false;
+	boolean lockInterface = false;
 
 	private class OverlayDelegate extends RhusMapItemizedOverlayDelegate{
 
@@ -266,6 +267,10 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 		((ImageButton) findViewById(R.id.cameraButton)).setOnClickListener(
 				new OnClickListener(){
 					public void onClick(View arg0) {
+						if(lockInterface){
+							return;
+						}
+						
 						//Check that we have a geo-fix
 						if(lastLocation == null){
 							Toast.makeText( getBaseContext(), "You do not currently have a geo-fix.  Please make sure your phone can 'see' the GPS satellites (make sure you are outside) and retry.", Toast.LENGTH_SHORT ).show();
@@ -287,6 +292,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 						intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
 						intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1);
 						captureTime = new Date().getTime();
+						lockInterface = true;
 						startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
 
 					}
@@ -334,6 +340,16 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 					
 					}
 				}		
+				);
+		
+		( (ImageButton) findViewById(R.id.backer_button)).setOnClickListener(
+				new OnClickListener(){
+					public void onClick(View arg0) {
+						Intent intent = new Intent("net.winterroot.android.wildflowers.BACKER_LIST");
+			        	startActivity(intent);
+
+					}
+				}
 				);
  
         ( (ImageButton) noteBaloon.findViewById(R.id.close_button)).setOnClickListener(
@@ -618,7 +634,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 				Location loc = lastLocation;
 				
 				if(loc == null){
-					Log.i(TAG, "Lst known location returned NULL, not saving this datapoint");
+					Log.i(TAG, "Last known location returned NULL, not saving this datapoint");
 					//TODO: Handle this exception somehow, probably by kicking them to a map where they can enter their location manually
 					//or allowing them to try to get a geofix again. 
 					//return;
@@ -682,6 +698,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 				
 				getContentResolver().insert(RhusDocument.CONTENT_URI, values);
 				
+				
 				/*TODO: Skipping for now
 				Intent intent = new Intent("net.winterroot.android.rhus.action.SUBMITFORM");
 				startActivity(intent);
@@ -694,6 +711,8 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 				Toast.makeText(this, "Picture was not taken", Toast.LENGTH_SHORT);
 			}
 		}
+		lockInterface = false;
+
 	}
 	
 	

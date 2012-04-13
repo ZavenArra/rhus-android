@@ -57,7 +57,9 @@ public class Rhimage {
 	        double sampleSize = 0;
 	        // Only scale if we need to
 	        // (16384 buffer for img processing)
-	        Boolean scaleByHeight = Math.abs(options.outHeight - targetHeight) >= Math
+	        
+	        //Switched inequality to scale by opposite dimension
+	        Boolean scaleByHeight = Math.abs(options.outHeight - targetHeight) <= Math
 	                .abs(options.outWidth - targetWidth);
 
 	        
@@ -82,8 +84,7 @@ public class Rhimage {
 	                     matrix.postRotate(orientation);
 
 	                     bitMapImage = Bitmap.createBitmap(bitMapImage, 0, 0, bitMapImage.getWidth(),
-	                    		 bitMapImage.getHeight(), matrix, true);
-
+	                    		 bitMapImage.getHeight(), matrix, true);	                   
 	                }
 
 	                break;
@@ -96,6 +97,27 @@ public class Rhimage {
 	            }
 	        }
 
+	        //and crop
+            int originx = 0;
+            int originy = 0;
+            int width = bitMapImage.getWidth() ;
+            int height = bitMapImage.getHeight() ; 
+            int ratio = targetWidth / targetHeight;
+            int reverseRatio = targetHeight / targetWidth;
+            //use smaller dimension
+            if(width > height){
+            	targetHeight = height;
+            	targetWidth = targetHeight * ratio;
+            } else {
+              	targetWidth = width;
+            	targetHeight = targetWidth * reverseRatio;
+            }
+            
+           	originx = (bitMapImage.getWidth() - targetWidth) / 2;
+           	originy = (bitMapImage.getHeight() - targetHeight) / 2;
+            bitMapImage = Bitmap.createBitmap(bitMapImage, originx, originy, targetWidth, targetHeight);
+
+	        
 	        return bitMapImage;
 	    }
 

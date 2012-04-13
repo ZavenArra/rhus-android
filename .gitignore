@@ -4,3 +4,4 @@ Couchbase/
 *.DS_Store*
 .metadata
 src/net/winterroot/android/rhus/configuration/
+gen

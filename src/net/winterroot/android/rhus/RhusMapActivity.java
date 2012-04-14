@@ -140,7 +140,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 					}
 				});
 
-				mapView.addView(noteBaloon, new MapView.LayoutParams(200,200,geoPoint,MapView.LayoutParams.BOTTOM_CENTER));
+				mapView.addView(noteBaloon, new MapView.LayoutParams(150,230,geoPoint,MapView.LayoutParams.BOTTOM_CENTER));
 				noteBaloon.setVisibility(View.VISIBLE);
 
 			}
@@ -351,7 +351,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 	private void inflateLayouts(){
 	    LayoutInflater              layoutInflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         noteBaloon = (BaloonLayout) layoutInflater.inflate(R.layout.baloon, null);
-        RelativeLayout.LayoutParams layoutParams   = new RelativeLayout.LayoutParams(200,100);
+        RelativeLayout.LayoutParams layoutParams   = new RelativeLayout.LayoutParams(10,20);
         layoutParams.addRule(RelativeLayout.CENTER_VERTICAL);
         layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
         noteBaloon.setLayoutParams(layoutParams);  

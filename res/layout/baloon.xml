@@ -8,10 +8,10 @@
     android:paddingRight="5dp"
     android:paddingTop="5dp" >
 
-    <RelativeLayout
+        <RelativeLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="400dp"
-        android:layout_height="400dp"
+        android:layout_width="100dp"
+        android:layout_height="300dp"
         android:layout_weight="0.09" >
 
         <TextView
@@ -39,13 +39,13 @@
 
         <ImageView
             android:id="@+id/thumbnail"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
             android:layout_alignParentLeft="true"
             android:layout_below="@+id/note_text"
             android:adjustViewBounds="false"
             android:scaleType="centerCrop"
             android:src="@drawable/test" />
-    </RelativeLayout>
 
+    </RelativeLayout>
 </com.dogantekin.baloon.BaloonLayout>

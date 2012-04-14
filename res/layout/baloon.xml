@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.dogantekin.baloon.BaloonLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/transparent_panel"
-    android:layout_width="110dp"
-    android:layout_height="170dp"
+    android:layout_width="400dp"
+    android:layout_height="400dp"
     android:paddingBottom="5dp"
     android:paddingLeft="5dp"
     android:paddingRight="5dp"
@@ -10,27 +10,13 @@
 
     <RelativeLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="110dp"
-        android:layout_height="170dp" >
-
-        <RelativeLayout
-            android:id="@+id/thumbnail_container"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:layout_alignParentLeft="true"
-            android:layout_below="@+id/note_text" >
-
-            <ImageView
-                android:id="@+id/thumbnail"
-                android:layout_width="80dp"
-                android:layout_height="80dp"
-                android:scaleType="fitCenter"
-                android:src="@drawable/test" />
-        </RelativeLayout>
+        android:layout_width="400dp"
+        android:layout_height="400dp"
+        android:layout_weight="0.09" >
 
         <TextView
             android:id="@+id/note_text"
-            android:layout_width="80dp"
+            android:layout_width="60dp"
             android:layout_height="20dp"
             android:layout_alignParentLeft="true"
             android:layout_alignParentTop="true"
@@ -45,11 +31,21 @@
             android:id="@+id/close_button"
             android:layout_width="20dp"
             android:layout_height="20dp"
-            android:layout_above="@+id/thumbnail_container"
-            android:layout_toRightOf="@+id/thumbnail_container"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
             android:background="@null"
             android:clickable="true"
             android:src="@drawable/close" />
+
+        <ImageView
+            android:id="@+id/thumbnail"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@+id/note_text"
+            android:adjustViewBounds="false"
+            android:scaleType="centerCrop"
+            android:src="@drawable/test" />
     </RelativeLayout>
 
 </com.dogantekin.baloon.BaloonLayout>

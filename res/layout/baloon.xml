@@ -42,7 +42,6 @@
             android:layout_width="70dp"
             android:layout_height="70dp"
             android:layout_alignParentLeft="true"
-            android:layout_below="@+id/close_button"
             android:layout_below="@+id/note_text"
             android:adjustViewBounds="false"
             android:scaleType="centerCrop"

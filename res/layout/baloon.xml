@@ -43,7 +43,7 @@
             android:layout_height="80dp"
             android:layout_alignParentLeft="true"
             android:layout_below="@+id/close_button"
-            android:scaleType="fitCenter"
+            android:scaleType="centerCrop"
             android:src="@drawable/test" />
 
     </RelativeLayout>

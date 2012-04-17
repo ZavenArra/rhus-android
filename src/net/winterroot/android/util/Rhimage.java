@@ -102,19 +102,22 @@ public class Rhimage {
             int originy = 0;
             int width = bitMapImage.getWidth() ;
             int height = bitMapImage.getHeight() ; 
-            int ratio = targetWidth / targetHeight;
-            int reverseRatio = targetHeight / targetWidth;
+            float ratio = targetWidth / targetHeight;
+            float reverseRatio = targetHeight / targetWidth;
             //use smaller dimension
             if(width > height){
             	targetHeight = height;
-            	targetWidth = targetHeight * ratio;
+            	targetWidth = (int)  (targetHeight * ratio);
             } else {
               	targetWidth = width;
-            	targetHeight = targetWidth * reverseRatio;
+            	targetHeight = (int) (targetWidth * reverseRatio);
             }
             
            	originx = (bitMapImage.getWidth() - targetWidth) / 2;
            	originy = (bitMapImage.getHeight() - targetHeight) / 2;
+           	
+           	//TODO: getting cropped to squares even on medium size.
+           //	Log.v(TAG, Integer.toString() )
             bitMapImage = Bitmap.createBitmap(bitMapImage, originx, originy, targetWidth, targetHeight);
 
 	        

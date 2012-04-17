@@ -29,7 +29,7 @@ public class CouchCursor extends MatrixCursor {
 	protected List<Row> listRows;
 	
 	protected EktorpAsyncTask updateListItemsTask;
-	protected CouchbaseListChangesAsyncTask couchChangesAsyncTask;
+	protected CouchbaseListChangesAsyncTask couchChangesAsyncTask = null;
 	
 	protected long lastUpdateChangesFeed = -1L;
 	protected long lastUpdateView = -1L;
@@ -145,8 +145,9 @@ public class CouchCursor extends MatrixCursor {
 
 		@Override
 		protected void handleDocumentChange(DocumentChange change) {
-			Log.v(TAG, "Handle Document Change");
 			lastUpdateChangesFeed = change.getSequence();
+			Log.v(TAG, "Handle Document Change "+String.valueOf(lastUpdateChangesFeed));
+			
 			updateListItems();   
 		}
 

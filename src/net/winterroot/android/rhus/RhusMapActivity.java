@@ -67,7 +67,8 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import net.winterroot.android.util.*;
-import net.winterroot.android.wildflowers.R;
+import net.winterroot.android.rhus.R;
+import net.winterroot.android.rhus.configuration.RhusDevelopmentConfiguration;
 import net.winterroot.android.rhus.provider.RhusDocumentContentProvider;
 import net.winterroot.android.rhus.provider.RhusDocument;
 
@@ -80,10 +81,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 	private final String TAG = this.getClass().getSimpleName();
 	private final String RESTORE = ", can restore state";
 
-	// Map View Defaults
-	private final GeoPoint center = new GeoPoint( (int) (42.35*1000000), (int) (-83.07*1000000) );
-	private final int fullLatitudeDelta = (int) (.05 * 1000000);
- 	private final int fullLongitudeDelta = (int) (.05 * 1000000);
+
 	//private final int fullLatitudeDelta = (int) (50 * 1000000);
 	//private final int fullLongitudeDelta = (int) (50 * 1000000);
 	
@@ -233,8 +231,8 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
             mapController.setCenter(mapState.center);
             mapController.zoomToSpan(mapState.latitudeSpan, mapState.longitudeSpan);
         } else {
-        	mapController.setCenter(center);
-        	mapController.zoomToSpan(fullLatitudeDelta, fullLongitudeDelta);
+        	mapController.setCenter(RhusDevelopmentConfiguration.center);
+        	mapController.zoomToSpan(RhusDevelopmentConfiguration.fullLatitudeDelta, RhusDevelopmentConfiguration.fullLongitudeDelta);
         }
         
         

@@ -10,7 +10,7 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import net.winterroot.android.rhus.provider.RhusDocument;
-import net.winterroot.android.wildflowers.R;
+import net.winterroot.android.rhus.R;
 import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;

@@ -12,7 +12,7 @@
         android:id="@+id/mapmain"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:apiKey="0OtQngcM2L3Cw8CJjM8-TT4bnOiKaxkfWuBsV3g"
+        android:apiKey="0BgkkXPCEw9_kdmcYzmpx_boZMOXJSaiXM5n3_w" 
         android:clickable="true" />
 
     <RelativeLayout

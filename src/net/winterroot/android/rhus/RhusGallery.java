@@ -1,6 +1,6 @@
 package net.winterroot.android.rhus;
 
-import net.winterroot.android.wildflowers.R;
+import net.winterroot.android.rhus.R;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;

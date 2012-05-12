@@ -4,7 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import net.winterroot.android.rhus.provider.RhusDocument;
-import net.winterroot.android.wildflowers.R;
+import net.winterroot.android.rhus.R;
 
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;

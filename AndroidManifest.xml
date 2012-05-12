@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-	package="net.winterroot.android.wildflowers" android:versionCode="1"
+	package="net.winterroot.android.rhus" android:versionCode="1"
 	android:versionName="1.0" android:installLocation="auto">
 
 	<uses-sdk android:minSdkVersion="8" android:targetSdkVersion="8" />
@@ -20,7 +20,7 @@
 		>
 		<uses-library android:name="com.google.android.maps" />
 		
-		<activity android:name="net.winterroot.android.rhus.RhusMapActivity" android:label="Wildflowers" >
+		<activity android:name="net.winterroot.android.rhus.RhusMapActivity" android:label="Rhus" >
 		    <intent-filter>
 				<action android:name="android.intent.action.MAIN" />
 				<category android:name="android.intent.category.LAUNCHER" />
@@ -47,7 +47,7 @@
 		
 		<provider
 			android:name="net.winterroot.android.rhus.provider.RhusDocumentContentProvider"
-			android:authorities="net.winterroot.android.rhus.provider.RhusDocument" />
+			android:authorities="net.winterroot.android.rhusWhiteLabel.provider.RhusDocument" />
 		
 		<service android:name="com.couchbase.android.CouchbaseService"
 			android:enabled="true" android:exported="false" />

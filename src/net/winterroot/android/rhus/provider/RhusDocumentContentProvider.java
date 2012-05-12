@@ -57,9 +57,12 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
     private static final String dDocId = "_design/rhus";
     public static final String userDocsViewName = "userDocuments";
 	public static final String allDocsViewName = "allDocuments";
+	public static final String projectsViewName = "projects";
 
     private static final String userDocsMapFunction = "function(doc) {  date = new Date(doc.created_at.substr(0,19)); niceDate = (date.getMonth()+1)+\"/\"+date.getDate()+\"/\"+date.getFullYear(); emit([doc.deviceuser_identifier, doc.created_at],{'id':doc._id, 'thumb':doc.thumb, 'medium':doc.medium, 'latitude':doc.latitude, 'longitude':doc.longitude, 'reporter':doc.reporter, 'comment':doc.comment, 'created_at':niceDate, 'deviceuser_identifier':doc.deviceuser_identifier } );}";
     private static final String allDocsMapFunction = "function(doc) {  date = new Date(doc.created_at.substr(0,19)); niceDate = (date.getMonth()+1)+\"/\"+date.getDate()+\"/\"+date.getFullYear(); emit(doc.created_at,{'id':doc._id, 'thumb':doc.thumb, 'medium':doc.medium, 'latitude':doc.latitude, 'longitude':doc.longitude, 'reporter':doc.reporter, 'comment':doc.comment, 'created_at':niceDate, 'deviceuser_identifier':doc.deviceuser_identifier } );}";
+    private static final String projectsMapFunction = "function(doc) { emit(doc.project, null); }";
+    private static final String projectsReduceFunction = "function(key, values) { return true; }";
     
     private static final String replicationFilter = "  function(doc, req) {"+
     		  "return \"_design/\" !== doc._id.substr(0, 8)" +
@@ -188,6 +191,17 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
 		catch(DocumentNotFoundException ndfe) {
 			DesignDocument dDoc = new DesignDocument(dDocId);
 			dDoc.addView(userDocsViewName, new DesignDocument.View(userDocsMapFunction));
+			couchDbConnector.create(dDoc);
+		}
+		
+		try {
+			DesignDocument dDoc = couchDbConnector.get(DesignDocument.class, dDocId);
+			dDoc.addView(projectsViewName, new DesignDocument.View(projectsMapFunction, projectsReduceFunction));
+			couchDbConnector.update(dDoc);
+		}
+		catch(DocumentNotFoundException ndfe) {
+			DesignDocument dDoc = new DesignDocument(dDocId);
+			dDoc.addView(projectsViewName, new DesignDocument.View(projectsMapFunction, projectsReduceFunction));
 			couchDbConnector.create(dDoc);
 		}
 

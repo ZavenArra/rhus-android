@@ -52,6 +52,7 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
     private static final int DOCUMENT_IMAGE_ID = 4;   //get document image by id
     private static final int USER_DOCUMENTS = 5;
     private static final int USER_IDENTIFIER = 6;
+    private static final int PROJECTS = 7;
     
     //TODO: This design document should be keep as a JSON text file, the below is not a superb way to handle things
     private static final String dDocId = "_design/rhus";
@@ -88,17 +89,10 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
         sUriMatcher.addURI(RhusDocument.AUTHORITY,
         		RhusDocument.USER_DOCUMENTS,
         		USER_DOCUMENTS);
+        sUriMatcher.addURI(RhusProject.AUTHORITY,
+        		RhusProject.PROJECTS,
+        		PROJECTS);
     }
-   /* 
-    public RhusDocumentContentProvider() {
-     //	  Include fileHandler for full size image cache
-     //   super(new FileHandlerFactory(FILE_CACHE_DIR));
-     //   mFileHandlerFactory = new FileHandlerFactory(FILE_CACHE_DIR);
-
-    }
-
-    */
-
     
 	@Override
 	public int delete(Uri uri, String selection, String[] selectionArgs) {
@@ -121,34 +115,52 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
 	
 	public Uri insert(Uri uri, ContentValues values) {
 		
-		ObjectNode documentNode = JsonNodeFactory.instance.objectNode();
-		documentNode.put("latitude", values.getAsDouble("latitude").toString() );
-		documentNode.put("longitude", values.getAsDouble("longitude").toString() );
-		documentNode.put("created_at", new StdDateFormat().format(new Date()) );
-		documentNode.put("deviceuser_identifier", values.getAsString("deviceuser_identifier"));
-		documentNode.put("thumb", JsonNodeFactory.instance.binaryNode(values.getAsByteArray("thumb")));
-		documentNode.put("medium",JsonNodeFactory.instance.binaryNode(values.getAsByteArray("medium")));
-
-		//Skip matching the URI for the moment
-
-		//Doing this synchronously - caller should call this content provider aynchronously.
-		Log.v(TAG, "Adding Document "+ documentNode.toString());
-		try {
-			couchDbConnector.create(documentNode);
-		} catch (UpdateConflictException e) {
-			Log.d(TAG, "Got an update conflict for: " + documentNode.toString());
-			return null;
-		}
-		Log.d(TAG, "Added "+documentNode.toString());
+		ensureCouchServiceStarted();
 		
-		long id = 0;  //Not the id!!
-		Log.d(TAG, "FIX: NOT THE ID");
-		Uri documentUri = ContentUris.withAppendedId(
-				RhusDocument.CONTENT_URI, id);
-		getContext().getContentResolver().notifyChange(documentUri, null);
-		//TODO: This should return the Content Provider Uri for the newly created item 
-		return documentUri;
-		
+	    int match = sUriMatcher.match(uri);
+	    switch (match) {
+	    case DOCUMENTS:
+
+	    	ObjectNode documentNode = JsonNodeFactory.instance.objectNode();
+	    	documentNode.put("latitude", values.getAsDouble("latitude").toString() );
+	    	documentNode.put("longitude", values.getAsDouble("longitude").toString() );
+	    	documentNode.put("created_at", new StdDateFormat().format(new Date()) );
+	    	documentNode.put("deviceuser_identifier", values.getAsString("deviceuser_identifier"));
+	    	documentNode.put("thumb", JsonNodeFactory.instance.binaryNode(values.getAsByteArray("thumb")));
+	    	documentNode.put("medium",JsonNodeFactory.instance.binaryNode(values.getAsByteArray("medium")));
+
+	    	//Skip matching the URI for the moment
+
+	    	//Doing this synchronously - caller should call this content provider aynchronously.
+	    	Log.v(TAG, "Adding Document "+ documentNode.toString());
+	    	try {
+	    		couchDbConnector.create(documentNode);
+	    	} catch (UpdateConflictException e) {
+	    		Log.d(TAG, "Got an update conflict for: " + documentNode.toString());
+	    		return null;
+	    	}
+	    	Log.d(TAG, "Added "+documentNode.toString());
+
+	    	long id = 0;  //Not the id!!
+	    	Log.d(TAG, "FIX: NOT THE ID");
+	    	Uri documentUri = ContentUris.withAppendedId(
+	    			RhusDocument.CONTENT_URI, id);
+	    	getContext().getContentResolver().notifyChange(documentUri, null);
+	    	//TODO: This should return the Content Provider Uri for the newly created item 
+	    	return documentUri;
+	    case PROJECTS:
+	    	ObjectNode projectNode = JsonNodeFactory.instance.objectNode();
+	    	projectNode.put("project", values.getAsString("project"));
+	    	try {
+	    		couchDbConnector.create(projectNode);
+	    	} catch (UpdateConflictException e) {
+	    		Log.d(TAG, "Got an update conflict for: " + projectNode.toString());
+	    		return null;
+	    	}
+	    	break;
+	    }
+	    
+	    return null;
 	}
 	
 	@Override 
@@ -252,8 +264,25 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
 	        	queryCursor.setNotificationUri(getContext().getContentResolver(), uri);
 	        	break;
 	        	
+	        case PROJECTS:
+	        	viewQuery = new ViewQuery().designDocId(dDocId).viewName(projectsViewName);
+	          	String project = uri.getQueryParameter("project");
+	          	if(project==null){
+	        		Log.e(TAG, "PROJECTS Uri called without project");
+	        		//TODO: Improve exception handling
+	        		throw new RuntimeException();
+	        	}
+	          	viewQuery.startKey(project);
+	          	viewQuery.endKey(project);
+	        	queryCursor = new CouchCursor(couchDbConnector, viewQuery);	
+	        	queryCursor.setNotificationUri(getContext().getContentResolver(), uri);
+	        	break;
 	    }
    
+	    if(queryCursor == null){
+	    	throw new RuntimeException();
+	    }
+	    
 	    return queryCursor;
 	}
 

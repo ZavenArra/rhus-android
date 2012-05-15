@@ -116,7 +116,7 @@ abstract public class CouchbaseMobileContentProvider extends ContentProvider {
    		//This won't work because the replications listener is listening, so either shut that down and start back up..
    		//When we return from another activity, we apparently do NOT want to restart the http client..
    			Log.i(TAG, "Restarting Ektorp");
-   			startEktorp();
+   		//	startEktorp();
    		//	dbInstance = new StdCouchDbInstance(httpClient);
    		//	couchDbConnector = dbInstance.createConnector(getBucketName(), true);
    		}

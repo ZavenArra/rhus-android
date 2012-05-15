@@ -157,7 +157,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 			RhusMapActivity mapActivity = mapActivities[0];
 			
 			Uri workingSetUri = ((RhusApplication) getApplicationContext()).rhusDataSet.getQueryUri();
-			documentsCursor = 	documentsCursor = managedQuery(workingSetUri, null, null, null, null);
+			documentsCursor  = managedQuery(workingSetUri, null, null, null, null);
 	
 			documentsCursor.setNotificationUri(mapActivity.getBaseContext().getContentResolver(), workingSetUri);
 			documentsCursor.registerDataSetObserver(new MapDataObserver());
@@ -209,14 +209,12 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 		super.onCreate(savedState);
 		Log.v(TAG, "onCreate");
 		
-		/* for Testing
-		Intent intent = new Intent("net.winterroot.android.rhus.action.SUBMITFORM");
+		/* for Testing * /
+		Intent intent = new Intent("net.winterroot.android.rhus.action.PROJECTS_LIST");
 		startActivity(intent);
-		*/
 		
+		/* */
 		
-	//	Intent intent = new Intent("net.winterroot.android.rhus.action.DOCUMENTDETAIL");
-	//	startActivity(intent);
 		
 		startLocationUpdates();
 		
@@ -228,7 +226,6 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
         //TODO: getLastNon.. is deprecated.  Convert this to user the normal 'bundle' paradigm
         RhusMapState mapState = (RhusMapState) getLastNonConfigurationInstance();
         if(mapState != null){
-            mapController.setCenter(mapState.center);
             mapController.zoomToSpan(mapState.latitudeSpan, mapState.longitudeSpan);
         } else {
         	mapController.setCenter(RhusDevelopmentConfiguration.center);
@@ -324,6 +321,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 				}		
 				);
 		
+		/*
 		( (ImageButton) findViewById(R.id.backer_button)).setOnClickListener(
 				new OnClickListener(){
 					public void onClick(View arg0) {
@@ -333,7 +331,20 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 					}
 				}
 				);
+ 		*/
  
+		
+		( (ImageButton) findViewById(R.id.projectsButton)).setOnClickListener(
+				new OnClickListener(){
+					public void onClick(View arg0) {
+						Intent intent = new Intent("net.winterroot.android.rhus.action.PROJECTS_LIST");
+			        	startActivity(intent);
+
+					}
+				}
+				);
+ 	
+		
         ( (ImageButton) noteBaloon.findViewById(R.id.close_button)).setOnClickListener(
         		new OnClickListener(){
         			public void onClick(View arg0) {

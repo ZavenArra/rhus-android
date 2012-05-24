@@ -19,6 +19,7 @@ import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import com.couchbase.touchdb.router.TDURLStreamHandlerFactory;
 import com.dogantekin.baloon.BaloonLayout;
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapView;
@@ -108,6 +109,11 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 	boolean updatingMapPoints = false;
 	boolean lockInterface = false;
 
+	//TouchDB static initialization block
+	{
+		TDURLStreamHandlerFactory.registerSelfIgnoreError();
+	}
+	
 	private class OverlayDelegate extends RhusMapItemizedOverlayDelegate{
 
 		@Override
@@ -157,10 +163,14 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 			RhusMapActivity mapActivity = mapActivities[0];
 			
 			Uri workingSetUri = ((RhusApplication) getApplicationContext()).rhusDataSet.getQueryUri();
+			
 			documentsCursor  = managedQuery(workingSetUri, null, null, null, null);
 	
-			documentsCursor.setNotificationUri(mapActivity.getBaseContext().getContentResolver(), workingSetUri);
-			documentsCursor.registerDataSetObserver(new MapDataObserver());
+			if(documentsCursor != null){
+				documentsCursor.setNotificationUri(mapActivity.getBaseContext().getContentResolver(), workingSetUri);
+				documentsCursor.registerDataSetObserver(new MapDataObserver());
+			}
+				
 			return null;
 		}
 		
@@ -209,13 +219,6 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 		super.onCreate(savedState);
 		Log.v(TAG, "onCreate");
 		
-		/* for Testing * /
-		Intent intent = new Intent("net.winterroot.android.rhus.action.PROJECTS_LIST");
-		startActivity(intent);
-		
-		/* */
-		
-		
 		startLocationUpdates();
 		
         setContentView(R.layout.map);
@@ -231,8 +234,6 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
         	mapController.setCenter(RhusDevelopmentConfiguration.center);
         	mapController.zoomToSpan(RhusDevelopmentConfiguration.fullLatitudeDelta, RhusDevelopmentConfiguration.fullLongitudeDelta);
         }
-        
-        
         
         loadedMapPoints = new HashMap<String, RhusDocument>();
 		
@@ -367,6 +368,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 	}
 	
 	private void updateMapPoints(){
+	
 		if(!updatingMapPoints){
 			QueryMapPointsTask queryMapPointsTask = new QueryMapPointsTask();
 			queryMapPointsTask.execute(this);
@@ -386,7 +388,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 		super.onStart();
 		
 		Log.i(TAG, "onStart");
-        
+       
         mapOverlays = mapView.getOverlays();
         QueryMapPointsTask queryMapPointsTask = new QueryMapPointsTask();
         queryMapPointsTask.execute(this);
@@ -685,7 +687,8 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 			    byte[] mediumData = stream2.toByteArray();
 				
 				values.put("thumb", thumbData);
-				values.put("medium", mediumData);
+				//TODO: put these back into being attachments.. oh the joY of it!
+				//values.put("medium", mediumData);
 				
 				values.put("deviceuser_identifier", ((RhusApplication) getApplicationContext()).rhusDevice.getDeviceId());
 				

@@ -2,8 +2,14 @@ package net.winterroot.android.rhus.provider;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.text.Format;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonProcessingException;
@@ -19,11 +25,16 @@ import org.ektorp.ViewResult;
 import org.ektorp.ViewResult.Row;
 import org.ektorp.support.DesignDocument;
 
-import net.winterroot.android.couchbasemobile.provider.CouchbaseMobileContentProvider;
-import net.winterroot.android.couchbasemobile.provider.CouchbaseMobileEktorpAsyncTask;
-import net.winterroot.android.couchbasemobile.provider.CouchCursor;
+import com.couchbase.touchdb.TDView;
+import com.couchbase.touchdb.TDViewMapBlock;
+import com.couchbase.touchdb.TDViewMapEmitBlock;
+import com.couchbase.touchdb.TDViewReduceBlock;
+
 import net.winterroot.android.rhus.*;
 import net.winterroot.android.rhus.configuration.RhusDevelopmentConfiguration;
+import net.winterroot.android.touchdb.provider.CouchCursor;
+import net.winterroot.android.touchdb.provider.TouchDBContentProvider;
+import net.winterroot.android.touchdb.provider.CouchbaseMobileEktorpAsyncTask;
 
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -35,7 +46,7 @@ import android.text.format.DateFormat;
 import android.util.Log;
 import android.database.MatrixCursor;
 
-public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider {
+public class RhusDocumentContentProvider extends TouchDBContentProvider {
 	
 	private static final String TAG = "RhusDocumentContentProvider";
 	
@@ -55,15 +66,16 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
     private static final int PROJECTS = 7;
     
     //TODO: This design document should be keep as a JSON text file, the below is not a superb way to handle things
-    private static final String dDocId = "_design/rhus";
+    private static final String dDocName = "rhus";
+    private static final String dDocId = "_design/"+dDocName;
     public static final String userDocsViewName = "userDocuments";
 	public static final String allDocsViewName = "allDocuments";
 	public static final String projectsViewName = "projects";
 
-    private static final String userDocsMapFunction = "function(doc) {  date = new Date(doc.created_at.substr(0,19)); niceDate = (date.getMonth()+1)+\"/\"+date.getDate()+\"/\"+date.getFullYear(); emit([doc.deviceuser_identifier, doc.created_at],{'id':doc._id, 'thumb':doc.thumb, 'medium':doc.medium, 'latitude':doc.latitude, 'longitude':doc.longitude, 'reporter':doc.reporter, 'comment':doc.comment, 'created_at':niceDate, 'deviceuser_identifier':doc.deviceuser_identifier } );}";
-    private static final String allDocsMapFunction = "function(doc) {  date = new Date(doc.created_at.substr(0,19)); niceDate = (date.getMonth()+1)+\"/\"+date.getDate()+\"/\"+date.getFullYear(); emit(doc.created_at,{'id':doc._id, 'thumb':doc.thumb, 'medium':doc.medium, 'latitude':doc.latitude, 'longitude':doc.longitude, 'reporter':doc.reporter, 'comment':doc.comment, 'created_at':niceDate, 'deviceuser_identifier':doc.deviceuser_identifier } );}";
-    private static final String projectsMapFunction = "function(doc) { emit(doc.project, null); }";
-    private static final String projectsReduceFunction = "function(key, values) { return true; }";
+   // private static final String userDocsMapFunction = "function(doc) {  date = new Date(doc.created_at.substr(0,19)); niceDate = (date.getMonth()+1)+\"/\"+date.getDate()+\"/\"+date.getFullYear(); emit([doc.deviceuser_identifier, doc.created_at],{'id':doc._id, 'thumb':doc.thumb, 'medium':doc.medium, 'latitude':doc.latitude, 'longitude':doc.longitude, 'reporter':doc.reporter, 'comment':doc.comment, 'created_at':niceDate, 'deviceuser_identifier':doc.deviceuser_identifier } );}";
+ //   private static final String allDocsMapFunction = "function(doc) {  date = new Date(doc.created_at.substr(0,19)); niceDate = (date.getMonth()+1)+\"/\"+date.getDate()+\"/\"+date.getFullYear(); emit(doc.created_at,{'id':doc._id, 'thumb':doc.thumb, 'medium':doc.medium, 'latitude':doc.latitude, 'longitude':doc.longitude, 'reporter':doc.reporter, 'comment':doc.comment, 'created_at':niceDate, 'deviceuser_identifier':doc.deviceuser_identifier } );}";
+//    private static final String projectsMapFunction = "function(doc) { emit(doc.project, null); }";
+ //   private static final String projectsReduceFunction = "function(key, values) { return true; }";
     
     private static final String replicationFilter = "  function(doc, req) {"+
     		  "return \"_design/\" !== doc._id.substr(0, 8)" +
@@ -179,44 +191,112 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
 
 		Log.v(TAG, "RHUS initialization");
 
-
-		//ensure we have a design document with a view
-		//update the design document if it exists, or create it if it does not exist
-		//TODO: change the below to be Rhus specific
-		try {
-			DesignDocument dDoc = couchDbConnector.get(DesignDocument.class, dDocId);
-			dDoc.addView(allDocsViewName, new DesignDocument.View(allDocsMapFunction));
-			couchDbConnector.update(dDoc);
-		}
-		catch(DocumentNotFoundException ndfe) {
-			DesignDocument dDoc = new DesignDocument(dDocId);
-			dDoc.addView(allDocsViewName, new DesignDocument.View(allDocsMapFunction));
-			couchDbConnector.create(dDoc);
-		}
+		//Java Views
+		
+		 final SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yy");
 
 		
-		try {
-			DesignDocument dDoc = couchDbConnector.get(DesignDocument.class, dDocId);
-			dDoc.addView(userDocsViewName, new DesignDocument.View(userDocsMapFunction));
-			couchDbConnector.update(dDoc);
-		}
-		catch(DocumentNotFoundException ndfe) {
-			DesignDocument dDoc = new DesignDocument(dDocId);
-			dDoc.addView(userDocsViewName, new DesignDocument.View(userDocsMapFunction));
-			couchDbConnector.create(dDoc);
-		}
-		
-		try {
-			DesignDocument dDoc = couchDbConnector.get(DesignDocument.class, dDocId);
-			dDoc.addView(projectsViewName, new DesignDocument.View(projectsMapFunction, projectsReduceFunction));
-			couchDbConnector.update(dDoc);
-		}
-		catch(DocumentNotFoundException ndfe) {
-			DesignDocument dDoc = new DesignDocument(dDocId);
-			dDoc.addView(projectsViewName, new DesignDocument.View(projectsMapFunction, projectsReduceFunction));
-			couchDbConnector.create(dDoc);
-		}
+		TDView allDocsView = db.getViewNamed(String.format("%s/%s", dDocName, allDocsViewName));
+		allDocsView.setMapReduceBlocks(new TDViewMapBlock() {
+			 
+			public void map(Map<String, Object> document,
+					TDViewMapEmitBlock emitter) {
 
+				String created_at = (String) document.get("created_at");
+				Date date = null;
+				if(created_at != null) {
+					try {
+						date = formatter.parse( created_at.substring(0, 10) );
+					} catch (ParseException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+				String niceDate = "";
+				if(date != null){
+					formatter.format(date);
+				}
+				
+				//TODO: break out the below into a function for reuse
+				Map<String, String> value = new HashMap<String, String>();
+				value.put("id", (String) document.get("_id"));
+				value.put("thumb", (String) document.get("thumb"));
+				//value.put("medium", (String) document.get("medium"));
+				value.put("latitude", (String) document.get("latitude"));
+				value.put("longitude", (String) document.get("longitude"));
+				value.put("reporter", (String) document.get("reporter"));
+				value.put("comment", (String) document.get("comment"));
+				value.put("created_at", niceDate);
+				value.put("deviceuser_identifier", (String) document.get("deviceuser_identifier"));
+				
+				emitter.emit(niceDate, value);
+				
+				//function(doc) {  date = new Date(doc.created_at.substr(0,19)); niceDate = (date.getMonth()+1)+\"/\"+date.getDate()+\"/\"+date.getFullYear();
+				//emit(doc.created_at,{'id':doc._id, 'thumb':doc.thumb, 'medium':doc.medium, 'latitude':doc.latitude, 'longitude':doc.longitude, 'reporter':doc.reporter, 'comment':doc.comment, 'created_at':niceDate, 'deviceuser_identifier':doc.deviceuser_identifier } );}";
+			}
+		  }, null, "1.0");
+
+		
+		
+		 TDView userDocsMapView = db.getViewNamed(String.format("%s/%s", dDocName, userDocsViewName));
+		 userDocsMapView.setMapReduceBlocks(new TDViewMapBlock() {
+				 
+				public void map(Map<String, Object> document,
+						TDViewMapEmitBlock emitter) {
+
+					String created_at = (String) document.get("created_at");
+				
+					Date date = null;
+					try {
+						date = formatter.parse( created_at.substring(0, 10) );
+					} catch (ParseException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					String niceDate = formatter.format(date);
+					
+					Map<String, String> value = new HashMap<String, String>();
+					value.put("id", (String) document.get("_id"));
+					value.put("thumb", (String) document.get("thumb"));
+					//value.put("medium", (String) document.get("medium"));
+					value.put("latitude", (String) document.get("latitude"));
+					value.put("longitude", (String) document.get("longitude"));
+					value.put("reporter", (String) document.get("reporter"));
+					value.put("comment", (String) document.get("comment"));
+					value.put("created_at", niceDate);
+					value.put("deviceuser_identifier", (String) document.get("deviceuser_identifier"));
+					
+					ArrayList<String> key = new ArrayList<String>();
+					key.add((String) document.get("deviceuser_identifier"));
+					key.add((String) document.get("created_at"));
+					emitter.emit(key, value);
+				
+					//    private static final String userDocsMapFunction = "function(doc) {  date = new Date(doc.created_at.substr(0,19)); niceDate = (date.getMonth()+1)+\"/\"+date.getDate()+\"/\"+date.getFullYear();
+//emit([doc.deviceuser_identifier, doc.created_at],{'id':doc._id, 'thumb':doc.thumb, 'medium':doc.medium, 'latitude':doc.latitude, 'longitude':doc.longitude, 'reporter':doc.reporter, 'comment':doc.comment, 'created_at':niceDate, 'deviceuser_identifier':doc.deviceuser_identifier } );}";
+
+				}
+			  }, null, "1.0");
+
+
+		 TDView projectsMapView = db.getViewNamed(String.format("%s/%s", dDocName, projectsViewName));
+		 projectsMapView.setMapReduceBlocks(new TDViewMapBlock() {
+				 
+				public void map(Map<String, Object> document,
+						TDViewMapEmitBlock emitter) {
+
+					emitter.emit(document.get("project"), null);
+				}
+
+			  }, 
+			  new TDViewReduceBlock(){
+
+				public Object reduce(List<Object> keys, List<Object> values,
+						boolean rereduce) {
+					return true;
+				}
+			  }, "1.0");
+		
+	
 		Log.v(TAG, "Finished RHUS initialization");
 	}
 
@@ -232,7 +312,7 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
 
 	    CouchCursor queryCursor = null;
 	    ViewQuery viewQuery;
-
+	
 	    int match = sUriMatcher.match(uri);
 	    switch (match) {
 	        case DOCUMENTS:
@@ -284,6 +364,7 @@ public class RhusDocumentContentProvider extends CouchbaseMobileContentProvider 
 	    }
 	    
 	    return queryCursor;
+	    
 	}
 
 	@Override

@@ -19,6 +19,7 @@ import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import com.couchbase.touchdb.router.TDURLStreamHandlerFactory;
 import com.dogantekin.baloon.BaloonLayout;
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapView;
@@ -67,7 +68,8 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import net.winterroot.android.util.*;
-import net.winterroot.android.wildflowers.R;
+import net.winterroot.android.rhus.R;
+import net.winterroot.android.rhus.configuration.RhusDevelopmentConfiguration;
 import net.winterroot.android.rhus.provider.RhusDocumentContentProvider;
 import net.winterroot.android.rhus.provider.RhusDocument;
 
@@ -80,10 +82,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 	private final String TAG = this.getClass().getSimpleName();
 	private final String RESTORE = ", can restore state";
 
-	// Map View Defaults
-	private final GeoPoint center = new GeoPoint( (int) (42.35*1000000), (int) (-83.07*1000000) );
-	private final int fullLatitudeDelta = (int) (.05 * 1000000);
- 	private final int fullLongitudeDelta = (int) (.05 * 1000000);
+
 	//private final int fullLatitudeDelta = (int) (50 * 1000000);
 	//private final int fullLongitudeDelta = (int) (50 * 1000000);
 	
@@ -110,6 +109,11 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 	boolean updatingMapPoints = false;
 	boolean lockInterface = false;
 
+	//TouchDB static initialization block
+	{
+		TDURLStreamHandlerFactory.registerSelfIgnoreError();
+	}
+	
 	private class OverlayDelegate extends RhusMapItemizedOverlayDelegate{
 
 		@Override
@@ -159,10 +163,14 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 			RhusMapActivity mapActivity = mapActivities[0];
 			
 			Uri workingSetUri = ((RhusApplication) getApplicationContext()).rhusDataSet.getQueryUri();
-			documentsCursor = 	documentsCursor = managedQuery(workingSetUri, null, null, null, null);
+			
+			documentsCursor  = managedQuery(workingSetUri, null, null, null, null);
 	
-			documentsCursor.setNotificationUri(mapActivity.getBaseContext().getContentResolver(), workingSetUri);
-			documentsCursor.registerDataSetObserver(new MapDataObserver());
+			if(documentsCursor != null){
+				documentsCursor.setNotificationUri(mapActivity.getBaseContext().getContentResolver(), workingSetUri);
+				documentsCursor.registerDataSetObserver(new MapDataObserver());
+			}
+				
 			return null;
 		}
 		
@@ -211,15 +219,6 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 		super.onCreate(savedState);
 		Log.v(TAG, "onCreate");
 		
-		/* for Testing
-		Intent intent = new Intent("net.winterroot.android.rhus.action.SUBMITFORM");
-		startActivity(intent);
-		*/
-		
-		
-	//	Intent intent = new Intent("net.winterroot.android.rhus.action.DOCUMENTDETAIL");
-	//	startActivity(intent);
-		
 		startLocationUpdates();
 		
         setContentView(R.layout.map);
@@ -230,14 +229,11 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
         //TODO: getLastNon.. is deprecated.  Convert this to user the normal 'bundle' paradigm
         RhusMapState mapState = (RhusMapState) getLastNonConfigurationInstance();
         if(mapState != null){
-            mapController.setCenter(mapState.center);
             mapController.zoomToSpan(mapState.latitudeSpan, mapState.longitudeSpan);
         } else {
-        	mapController.setCenter(center);
-        	mapController.zoomToSpan(fullLatitudeDelta, fullLongitudeDelta);
+        	mapController.setCenter(RhusDevelopmentConfiguration.center);
+        	mapController.zoomToSpan(RhusDevelopmentConfiguration.fullLatitudeDelta, RhusDevelopmentConfiguration.fullLongitudeDelta);
         }
-        
-        
         
         loadedMapPoints = new HashMap<String, RhusDocument>();
 		
@@ -326,6 +322,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 				}		
 				);
 		
+		/*
 		( (ImageButton) findViewById(R.id.backer_button)).setOnClickListener(
 				new OnClickListener(){
 					public void onClick(View arg0) {
@@ -335,7 +332,20 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 					}
 				}
 				);
+ 		*/
  
+		
+		( (ImageButton) findViewById(R.id.projectsButton)).setOnClickListener(
+				new OnClickListener(){
+					public void onClick(View arg0) {
+						Intent intent = new Intent("net.winterroot.android.rhus.action.PROJECTS_LIST");
+			        	startActivity(intent);
+
+					}
+				}
+				);
+ 	
+		
         ( (ImageButton) noteBaloon.findViewById(R.id.close_button)).setOnClickListener(
         		new OnClickListener(){
         			public void onClick(View arg0) {
@@ -358,6 +368,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 	}
 	
 	private void updateMapPoints(){
+	
 		if(!updatingMapPoints){
 			QueryMapPointsTask queryMapPointsTask = new QueryMapPointsTask();
 			queryMapPointsTask.execute(this);
@@ -377,7 +388,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 		super.onStart();
 		
 		Log.i(TAG, "onStart");
-        
+       
         mapOverlays = mapView.getOverlays();
         QueryMapPointsTask queryMapPointsTask = new QueryMapPointsTask();
         queryMapPointsTask.execute(this);
@@ -676,7 +687,8 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 			    byte[] mediumData = stream2.toByteArray();
 				
 				values.put("thumb", thumbData);
-				values.put("medium", mediumData);
+				//TODO: put these back into being attachments.. oh the joY of it!
+				//values.put("medium", mediumData);
 				
 				values.put("deviceuser_identifier", ((RhusApplication) getApplicationContext()).rhusDevice.getDeviceId());
 				

@@ -47,6 +47,7 @@ import android.content.res.Resources;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.database.DataSetObserver;
+import android.database.MatrixCursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.BitmapFactory.Options;
@@ -67,6 +68,7 @@ import android.widget.TextView;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import net.winterroot.android.touchdb.provider.BlobCursor;
 import net.winterroot.android.util.*;
 import net.winterroot.android.rhus.R;
 import net.winterroot.android.rhus.configuration.RhusDevelopmentConfiguration;
@@ -126,8 +128,15 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 				((TextView)noteBaloon.findViewById(R.id.note_text)).setText(document.created_at);
 				
 				ImageView thumbnail = ((ImageView)noteBaloon.findViewById(R.id.thumbnail));
-				if(document.thumb != null){
-					ByteArrayInputStream is = new ByteArrayInputStream(document.thumb);
+				
+				Uri thumbUri = RhusDocument.DOCUMENT_THUMB_URI.buildUpon().appendPath(document.getId()).build();
+				
+				Cursor thumbCursor  =  managedQuery(thumbUri, null, null, null, null);
+				
+				
+				if(thumbCursor != null && thumbCursor.getCount() != 0){
+					thumbCursor.moveToFirst();
+					ByteArrayInputStream is = new ByteArrayInputStream( thumbCursor.getBlob(thumbCursor.getColumnIndexOrThrow("image")));
 					Drawable drw = Drawable.createFromStream(is, "thumbnailImage");
 					thumbnail.setImageDrawable(drw);
 				} else {
@@ -686,9 +695,9 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 				medium.compress(Bitmap.CompressFormat.JPEG, 100, stream2);
 			    byte[] mediumData = stream2.toByteArray();
 				
-				values.put("thumb", thumbData);
 				//TODO: put these back into being attachments.. oh the joY of it!
-				//values.put("medium", mediumData);
+				values.put("thumb", thumbData);
+				values.put("medium", mediumData);
 				
 				values.put("deviceuser_identifier", ((RhusApplication) getApplicationContext()).rhusDevice.getDeviceId());
 				

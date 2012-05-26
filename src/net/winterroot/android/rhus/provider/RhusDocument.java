@@ -15,7 +15,7 @@ public class RhusDocument implements Parcelable {
 	
 	public static final String DOCUMENTS = "documents";
 	public static final String THUMB = "thumb";
-	public static final String IMAGE = "image";
+	public static final String MEDIUM = "medium";
 	public static final String USER_DOCUMENTS = "user_documents";
 	
     // uri references all videos
@@ -23,7 +23,11 @@ public class RhusDocument implements Parcelable {
             AUTHORITY + "/" + RhusDocument.DOCUMENTS);
     public static final Uri USER_DOCUMENTS_URI = Uri.parse("content://"+
             AUTHORITY + "/" + RhusDocument.USER_DOCUMENTS);
-
+    public static final Uri DOCUMENT_THUMB_URI = Uri.parse("content://" +
+    		AUTHORITY + "/" + RhusDocument.THUMB);
+    public static final Uri DOCUMENT_MEDIUM_URI = Uri.parse("content://" +
+    		AUTHORITY + "/" + RhusDocument.MEDIUM);
+    
     /**
      * The content:// style URI for this table
      */
@@ -100,10 +104,6 @@ public class RhusDocument implements Parcelable {
     	out.writeString(latitude);
     	out.writeString(created_at);
     	out.writeString(deviceuser_identifier);
-    	out.writeInt(thumb.length);
-    	out.writeByteArray(thumb);
-    	out.writeInt(medium.length);
-    	out.writeByteArray(medium);
     	out.writeString(reporter);
     	out.writeString(comment);
     }
@@ -125,12 +125,6 @@ public class RhusDocument implements Parcelable {
     	latitude = in.readString();
     	created_at = in.readString();
     	deviceuser_identifier = in.readString();
-    	int thumbLength = in.readInt();
-    	thumb = new byte[thumbLength];
-    	in.readByteArray(thumb);
-    	int mediumLength = in.readInt();
-    	medium = new byte[mediumLength];
-    	in.readByteArray(medium);
     	reporter = in.readString();
     	comment = in.readString();
 	}

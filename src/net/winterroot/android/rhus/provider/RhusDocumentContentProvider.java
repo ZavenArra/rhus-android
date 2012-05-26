@@ -1,6 +1,8 @@
 package net.winterroot.android.rhus.provider;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Array;
 import java.text.Format;
 import java.text.ParseException;
@@ -11,12 +13,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.IOUtils;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.util.StdDateFormat;
 import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.node.ObjectNode;
+import org.ektorp.AttachmentInputStream;
 import org.ektorp.ComplexKey;
 import org.ektorp.DocumentNotFoundException;
 import org.ektorp.UpdateConflictException;
@@ -32,6 +36,7 @@ import com.couchbase.touchdb.TDViewReduceBlock;
 
 import net.winterroot.android.rhus.*;
 import net.winterroot.android.rhus.configuration.RhusDevelopmentConfiguration;
+import net.winterroot.android.touchdb.provider.BlobCursor;
 import net.winterroot.android.touchdb.provider.CouchCursor;
 import net.winterroot.android.touchdb.provider.TouchDBContentProvider;
 import net.winterroot.android.touchdb.provider.CouchbaseMobileEktorpAsyncTask;
@@ -40,6 +45,7 @@ import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.UriMatcher;
+import android.database.AbstractCursor;
 import android.database.Cursor;
 import android.net.Uri;
 import android.text.format.DateFormat;
@@ -87,11 +93,13 @@ public class RhusDocumentContentProvider extends TouchDBContentProvider {
         sUriMatcher.addURI(RhusDocument.AUTHORITY,
                 RhusDocument.DOCUMENTS + "/#",
                 DOCUMENT_ID);
+        
         sUriMatcher.addURI(RhusDocument.AUTHORITY,
-                RhusDocument.THUMB + "/#",
+                RhusDocument.THUMB + "/*",
                 DOCUMENT_THUMB_ID);
+        
         sUriMatcher.addURI(RhusDocument.AUTHORITY,
-                RhusDocument.IMAGE + "/*",
+                RhusDocument.MEDIUM + "/*",
                 DOCUMENT_IMAGE_ID);
         sUriMatcher.addURI(RhusDocument.AUTHORITY,
         		RhusDocument.USER_DOCUMENTS,
@@ -133,8 +141,8 @@ public class RhusDocumentContentProvider extends TouchDBContentProvider {
 	    	documentNode.put("longitude", values.getAsDouble("longitude").toString() );
 	    	documentNode.put("created_at", new StdDateFormat().format(new Date()) );
 	    	documentNode.put("deviceuser_identifier", values.getAsString("deviceuser_identifier"));
-	    	documentNode.put("thumb", JsonNodeFactory.instance.binaryNode(values.getAsByteArray("thumb")));
-	    	documentNode.put("medium",JsonNodeFactory.instance.binaryNode(values.getAsByteArray("medium")));
+	    	//documentNode.put("thumb", JsonNodeFactory.instance.binaryNode(values.getAsByteArray("thumb")));
+	    	//documentNode.put("medium",JsonNodeFactory.instance.binaryNode(values.getAsByteArray("medium")));
 
 	    	//Skip matching the URI for the moment
 
@@ -147,11 +155,32 @@ public class RhusDocumentContentProvider extends TouchDBContentProvider {
 	    		return null;
 	    	}
 	    	Log.d(TAG, "Added "+documentNode.toString());
+	    	
+	    	String id = documentNode.get("_id").getTextValue();
+	    	
+	    	byte[] thumb = values.getAsByteArray("thumb");
+	    	int lns = thumb.length;
+	    	ByteArrayInputStream thumbStream =  new ByteArrayInputStream(thumb);
+	    	AttachmentInputStream a = new AttachmentInputStream("thumb.jpg",
+	    			thumbStream,
+	    			"image/jpeg");
 
-	    	long id = 0;  //Not the id!!
+	    	String _rev =couchDbConnector.createAttachment(id, documentNode.get("_rev").getTextValue(), a);
+	    	couchDbConnector.createAttachment(_rev, a);
+	    	
+	    	byte[] medium = values.getAsByteArray("medium");
+	    	int ln = medium.length;
+	    	a = new AttachmentInputStream("medium.jpg",
+	    			new ByteArrayInputStream(values.getAsByteArray("medium")),
+	    			"image/jpeg");
+	    	
+	    	couchDbConnector.createAttachment(id, _rev, a);
+
+	    	
+	    	
+	    	//long id = 0;  //Not the id!!
 	    	Log.d(TAG, "FIX: NOT THE ID");
-	    	Uri documentUri = ContentUris.withAppendedId(
-	    			RhusDocument.CONTENT_URI, id);
+	    	Uri documentUri = RhusDocument.CONTENT_URI.buildUpon().appendPath(id).build();
 	    	getContext().getContentResolver().notifyChange(documentUri, null);
 	    	//TODO: This should return the Content Provider Uri for the newly created item 
 	    	return documentUri;
@@ -189,6 +218,8 @@ public class RhusDocumentContentProvider extends TouchDBContentProvider {
 		//Java Views
 		
 		 final SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yy");
+		 final SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+
 
 		
 		TDView allDocsView = db.getViewNamed(String.format("%s/%s", dDocName, allDocsViewName));
@@ -201,7 +232,7 @@ public class RhusDocumentContentProvider extends TouchDBContentProvider {
 				Date date = null;
 				if(created_at != null) {
 					try {
-						date = formatter.parse( created_at.substring(0, 10) );
+						date = dateFormatter.parse( created_at.substring(0, 10) );
 					} catch (ParseException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -243,7 +274,7 @@ public class RhusDocumentContentProvider extends TouchDBContentProvider {
 				
 					Date date = null;
 					try {
-						date = formatter.parse( created_at.substring(0, 10) );
+						date = dateFormatter.parse( created_at.substring(0, 10) );
 					} catch (ParseException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -305,7 +336,7 @@ public class RhusDocumentContentProvider extends TouchDBContentProvider {
 		
     	Log.v(TAG, "Content provider query");
 
-	    CouchCursor queryCursor = null;
+    	Cursor queryCursor = null;
 	    ViewQuery viewQuery;
 	
 	    int match = sUriMatcher.match(uri);
@@ -352,6 +383,48 @@ public class RhusDocumentContentProvider extends TouchDBContentProvider {
 	        	queryCursor = new CouchCursor(couchDbConnector, viewQuery);	
 	        	queryCursor.setNotificationUri(getContext().getContentResolver(), uri);
 	        	break;
+	        	
+	        case DOCUMENT_THUMB_ID:
+	          	//String documentId = uri.getQueryParameter("id");
+	        	String documentId = uri.getLastPathSegment();
+	        	AttachmentInputStream data;
+	        	try {
+	        		data = couchDbConnector.getAttachment(documentId,
+                        "thumb.jpg");
+	    
+	        	} catch (DocumentNotFoundException e) {
+	        		return null;
+	        	}
+	        	
+	        	/*
+	        	byte[] dataBytes = null;
+	        	try {
+	        		dataBytes = IOUtils.toByteArray(data);
+	        	} catch (IOException e1) {
+	        		// TODO Auto-generated catch block
+	        		e1.printStackTrace();
+	        	}
+	        	*/
+	        	
+	        	byte[] dataBytes = {'a','a'};
+	        	
+
+	        	if(dataBytes != null){
+	        		//need to read data into a byteArray.
+	        		//and then return that byte array.
+	        		//BlobCursor blobCursor = new BlobCursor(new String[] {"image"});
+	        		//blobCursor.addRow(new Object[] { dataBytes } );
+	        		
+	        		//TODO: this is a terrible dirty hack, because I can't understand how to just
+	        		//pass back a blob from the content provider without jumping through tons of hoops
+	        		//AbstractCursor doesn't implement getBlob, so MatrixCursor won't grant access to an assigned blob
+	        		BlobCursor blobCursor = new BlobCursor();
+	        		blobCursor.setBlob(dataBytes);
+	        		queryCursor = blobCursor;
+	        	}
+
+
+	        	//break; TODO: understand how to return different types of cursors
 	    }
    
 	    if(queryCursor == null){

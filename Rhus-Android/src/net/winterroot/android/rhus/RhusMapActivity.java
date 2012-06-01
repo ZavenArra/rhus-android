@@ -71,7 +71,7 @@ import android.widget.Toast;
 import net.winterroot.android.touchdb.provider.BlobCursor;
 import net.winterroot.android.util.*;
 import net.winterroot.android.rhus.R;
-import net.winterroot.android.rhus.configuration.RhusDevelopmentConfiguration;
+import net.winterroot.android.rhus.configuration.RhusConfiguration;
 import net.winterroot.android.rhus.provider.RhusDocumentContentProvider;
 import net.winterroot.android.rhus.provider.RhusDocument;
 
@@ -251,8 +251,8 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
         if(mapState != null){
             mapController.zoomToSpan(mapState.latitudeSpan, mapState.longitudeSpan);
         } else {
-        	mapController.setCenter(RhusDevelopmentConfiguration.center);
-        	mapController.zoomToSpan(RhusDevelopmentConfiguration.fullLatitudeDelta, RhusDevelopmentConfiguration.fullLongitudeDelta);
+        	mapController.setCenter(RhusConfiguration.center);
+        	mapController.zoomToSpan(RhusConfiguration.fullLatitudeDelta, RhusConfiguration.fullLongitudeDelta);
         }
         
         loadedMapPoints = new HashMap<String, RhusDocument>();

@@ -80,4 +80,21 @@
     <!-- version-tag: custom -->
     <import file="${sdk.dir}/tools/ant/build.xml" />
 
+    <target name="prepare">
+      <exec dir="../TouchDB-Android/TouchDB-Android">
+        <arg value="android"/>
+        <arg value="update"/>
+        <arg value="project"/>
+        <arg value="--path"/>
+        <arg value="."/>
+      </exec>
+      <exec dir="../TouchDB-Android/TouchDB-Android-Ektorp">
+        <arg value="android"/>
+        <arg value="update"/>
+        <arg value="project"/>
+        <arg value="--path"/>
+        <arg value="."/>
+      </exec>
+    </target>
+
 </project>

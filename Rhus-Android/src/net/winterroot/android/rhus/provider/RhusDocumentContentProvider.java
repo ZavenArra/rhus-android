@@ -35,7 +35,7 @@ import com.couchbase.touchdb.TDViewMapEmitBlock;
 import com.couchbase.touchdb.TDViewReduceBlock;
 
 import net.winterroot.android.rhus.*;
-import net.winterroot.android.rhus.configuration.RhusDevelopmentConfiguration;
+import net.winterroot.android.rhus.configuration.RhusConfiguration;
 import net.winterroot.android.touchdb.provider.BlobCursor;
 import net.winterroot.android.touchdb.provider.CouchCursor;
 import net.winterroot.android.touchdb.provider.TouchDBContentProvider;
@@ -60,7 +60,7 @@ public class RhusDocumentContentProvider extends TouchDBContentProvider {
     		"/data/data/net.winterroot.net.android.rhus/file_cache";
     
     //Change this manually to build different versions of the app, or set up build targets using ant, etc.
-    private static String REPLICATION_URL = RhusDevelopmentConfiguration.REPLICATION_URL;
+    private static String REPLICATION_URL = RhusConfiguration.REPLICATION_URL;
     private static String BUCKET_NAME = "documents";
 	
     private static final int DOCUMENTS = 1;			  //get all documents (possibly filtered)

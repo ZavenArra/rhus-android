@@ -323,16 +323,6 @@ public class RhusDocumentContentProvider extends TouchDBContentProvider {
 		Log.v(TAG, "Finished RHUS initialization");
 	}
 
-	
-	//Stuff to write about
-	//Following changes seems really unnecessary because of android activity life cycle, unless you are doing this WITHIN a content provider
-	//ASYNC tasks vs. Thread, the whole thing with lossing connections
-	//Couchbase Mobile also had this problem, loosing connections to EKTorp
-	//Work toward a CouchCursor..  interesting but has lots of issues
-	//Async tasks get leaked..
-	//Android Cursor implementation is too restrictive, way too geared towards SQLite
-
-
 	@Override
 	public Cursor query(Uri uri, String[] projection, String selection,
 			String[] selectionArgs, String sortOrder) {

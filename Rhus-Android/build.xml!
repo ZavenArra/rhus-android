@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="wildedibles" default="">
+
+  <target name="sign">
+    <input
+      message="Please enter keystore password:"
+      addproperty="keypass" />
+    <exec executable="jarsigner"  failonerror="true" >
+      <arg value="-verbose"/>
+      <arg value="-sigalg"/>
+      <arg value="MD5withRSA"/>
+      <arg value="-digestalg"/>
+      <arg value="SHA1"/>
+      <arg value="-keystore"/>
+      <arg value="wildflowers-release.keystore"/>
+      <arg value="-storepass"/>
+      <arg value="${keypass}"/>
+      <arg value="dist/WildflowersOfDetroit.apk"/>
+      <arg value="wildflowerskey"/>
+    </exec>
+    <exec executable="jarsigner"  failonerror="true" >
+      <arg value="-verify"/>
+      <arg value="dist/WildflowersOfDetroit.apk"/>
+    </exec>
+    <delete file="dist/WildflowersOfDetroit-ForPublishing.apk"/>
+    <exec executable="zipalign"  failonerror="true" >
+      <arg value="-v"/>
+      <arg value="4"/>
+      <arg value="dist/WildflowersOfDetroit.apk"/>
+      <arg value="dist/WildflowersOfDetroit-ForPublishing.apk"/>
+    </exec>
+  </target>
+
+</project>

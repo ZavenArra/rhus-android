@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+	package="net.winterroot.android.rhus" android:versionCode="1"
+	android:versionName="1.0" android:installLocation="auto">
+
+	<uses-sdk android:minSdkVersion="8" android:targetSdkVersion="8" />
+
+	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+	<uses-permission android:name="android.permission.INTERNET" />
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+	<uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+	
+    <uses-permission android:name="android.permission.ACCESS_MOCK_LOCATION" /> 
+
+
+	<application android:icon="@drawable/icon"
+		android:label="@string/app_name"
+		android:name=".RhusApplication"
+		android:theme="@android:style/Theme.NoTitleBar"
+		>
+		<uses-library android:name="com.google.android.maps" />
+		
+		<activity android:name="net.winterroot.android.rhus.RhusMapActivity" android:label="Rhus" >
+		    <intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity>
+		<activity android:name="net.winterroot.android.rhus.RhusSubmitFormActivity" android:label="Updating Data">
+		    <intent-filter>
+		        <action android:name="net.winterroot.android.rhus.action.SUBMITFORM" />
+		        <category android:name="android.intent.category.DEFAULT" />
+		    </intent-filter>
+		</activity>
+		<activity android:name="net.winterroot.android.rhus.RhusDocumentDetailActivity" android:label="Detail">
+		    <intent-filter>
+		        <action android:name="net.winterroot.android.rhus.action.DOCUMENTDETAIL" />
+		        <category android:name="android.intent.category.DEFAULT" />
+		    </intent-filter>
+		</activity>
+		<activity android:name="net.winterroot.android.wildflowers.WildflowersBackerListActivity" android:label="Backer List">
+		    <intent-filter>
+		        <action android:name="net.winterroot.android.wildflowers.BACKER_LIST" />
+		        <category android:name="android.intent.category.DEFAULT" />
+		    </intent-filter>
+		</activity>
+		
+		<activity android:name=".ProjectsListActivity" android:label="Projects List">
+		    <intent-filter>
+		        <action android:name="net.winterroot.android.rhus.action.PROJECTS_LIST" />
+		        <category android:name="android.intent.category.DEFAULT" />
+		    </intent-filter>
+		</activity>
+		
+		<provider
+			android:name=".provider.RhusDocumentContentProvider"
+			android:authorities="net.winterroot.android.rhus.provider.RhusDocument;net.winterroot.android.rhus.provider.RhusProject" />
+		
+		<service android:name="com.couchbase.android.CouchbaseService"
+			android:enabled="true" android:exported="false" />
+	</application>
+
+
+</manifest>

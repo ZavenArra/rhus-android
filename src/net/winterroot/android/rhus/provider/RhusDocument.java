@@ -25,7 +25,7 @@ public class RhusDocument implements Parcelable {
             AUTHORITY + "/" + RhusDocument.USER_DOCUMENTS);
     public static final Uri DOCUMENT_THUMB_URI = Uri.parse("content://" +
     		AUTHORITY + "/" + RhusDocument.THUMB);
-    public static final Uri DOCUMENT_MEDIUM_URI = Uri.parse("content://" +
+    public static final Uri DOCUMENT_IMAGE_URI = Uri.parse("content://" +
     		AUTHORITY + "/" + RhusDocument.MEDIUM);
     
     /**

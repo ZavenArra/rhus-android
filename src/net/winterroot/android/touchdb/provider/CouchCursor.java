@@ -38,7 +38,8 @@ public class CouchCursor extends MatrixCursor {
 		super(new String[] {"id","document"});
 		this.dbConnector = setDbConnector;
 		this.viewQuery = setViewQuery;
-		followChanges = true;
+		followChanges = false;  //These ASYNC tasks are really a big problem.  
+								//Since activities get destroyed all the time on Android, following changes seems unnecessary.
 		updateListItems();
 	}
 	

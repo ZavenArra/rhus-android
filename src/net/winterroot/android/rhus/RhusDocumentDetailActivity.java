@@ -11,7 +11,9 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import android.app.Activity;
+import android.database.Cursor;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -71,10 +73,23 @@ public class RhusDocumentDetailActivity extends Activity {
         
         
         ImageView detailImage = (ImageView) findViewById(R.id.detailImage);
-        if(document != null && document.medium != null){
-        	ByteArrayInputStream is = new ByteArrayInputStream(document.medium);
-        	Drawable drw = Drawable.createFromStream(is, "mediumImage");
-        	detailImage.setImageDrawable(drw);
+        if(document != null){
+        	Uri imageUri = RhusDocument.DOCUMENT_IMAGE_URI.buildUpon().appendPath(document.getId()).build();
+			
+			Cursor imageCursor  =  managedQuery(imageUri, null, null, null, null);
+			if(imageCursor != null && imageCursor.getCount() != 0){
+				imageCursor.moveToFirst();
+				byte[] mediumData = imageCursor.getBlob(imageCursor.getColumnIndexOrThrow("image"));
+				if(mediumData != null){
+					ByteArrayInputStream is = new ByteArrayInputStream(mediumData );
+				 	Drawable drw = Drawable.createFromStream(is, "mediumImage");
+		        	detailImage.setImageDrawable(drw);
+				}
+			} 
+
+			
+			
+       
         }
 		
 	}

@@ -101,9 +101,11 @@ public class RhusDocumentContentProvider extends TouchDBContentProvider {
         sUriMatcher.addURI(RhusDocument.AUTHORITY,
                 RhusDocument.MEDIUM + "/*",
                 DOCUMENT_IMAGE_ID);
+        
         sUriMatcher.addURI(RhusDocument.AUTHORITY,
         		RhusDocument.USER_DOCUMENTS,
         		USER_DOCUMENTS);
+        
         sUriMatcher.addURI(RhusProject.AUTHORITY,
         		RhusProject.PROJECTS,
         		PROJECTS);
@@ -146,7 +148,7 @@ public class RhusDocumentContentProvider extends TouchDBContentProvider {
 
 	    	//Skip matching the URI for the moment
 
-	    	//Doing this synchronously - caller should call this content provider aynchronously.
+	    	//Doing this synchronously - caller should call this content provider asynchronously.
 	    	Log.v(TAG, "Adding Document "+ documentNode.toString());
 	    	try {
 	    		couchDbConnector.create(documentNode);
@@ -159,14 +161,13 @@ public class RhusDocumentContentProvider extends TouchDBContentProvider {
 	    	String id = documentNode.get("_id").getTextValue();
 	    	
 	    	byte[] thumb = values.getAsByteArray("thumb");
-	    	int lns = thumb.length;
+	    	//byte[] thumb = new byte[] {'a','b'};
 	    	ByteArrayInputStream thumbStream =  new ByteArrayInputStream(thumb);
 	    	AttachmentInputStream a = new AttachmentInputStream("thumb.jpg",
 	    			thumbStream,
 	    			"image/jpeg");
 
 	    	String _rev =couchDbConnector.createAttachment(id, documentNode.get("_rev").getTextValue(), a);
-	    	couchDbConnector.createAttachment(_rev, a);
 	    	
 	    	byte[] medium = values.getAsByteArray("medium");
 	    	int ln = medium.length;
@@ -246,8 +247,6 @@ public class RhusDocumentContentProvider extends TouchDBContentProvider {
 				//TODO: break out the below into a function for reuse
 				Map<String, String> value = new HashMap<String, String>();
 				value.put("id", (String) document.get("_id"));
-				value.put("thumb", (String) document.get("thumb"));
-				//value.put("medium", (String) document.get("medium"));
 				value.put("latitude", (String) document.get("latitude"));
 				value.put("longitude", (String) document.get("longitude"));
 				value.put("reporter", (String) document.get("reporter"));
@@ -283,8 +282,6 @@ public class RhusDocumentContentProvider extends TouchDBContentProvider {
 					
 					Map<String, String> value = new HashMap<String, String>();
 					value.put("id", (String) document.get("_id"));
-					value.put("thumb", (String) document.get("thumb"));
-					//value.put("medium", (String) document.get("medium"));
 					value.put("latitude", (String) document.get("latitude"));
 					value.put("longitude", (String) document.get("longitude"));
 					value.put("reporter", (String) document.get("reporter"));
@@ -326,6 +323,14 @@ public class RhusDocumentContentProvider extends TouchDBContentProvider {
 		Log.v(TAG, "Finished RHUS initialization");
 	}
 
+	
+	//Stuff to write about
+	//Following changes seems really unnecessary because of android activity life cycle, unless you are doing this WITHIN a content provider
+	//ASYNC tasks vs. Thread, the whole thing with lossing connections
+	//Couchbase Mobile also had this problem, loosing connections to EKTorp
+	//Work toward a CouchCursor..  interesting but has lots of issues
+	//Async tasks get leaked..
+	//Android Cursor implementation is too restrictive, way too geared towards SQLite
 
 
 	@Override
@@ -338,7 +343,8 @@ public class RhusDocumentContentProvider extends TouchDBContentProvider {
 
     	Cursor queryCursor = null;
 	    ViewQuery viewQuery;
-	
+	    String documentId;
+	    
 	    int match = sUriMatcher.match(uri);
 	    switch (match) {
 	        case DOCUMENTS:
@@ -385,46 +391,17 @@ public class RhusDocumentContentProvider extends TouchDBContentProvider {
 	        	break;
 	        	
 	        case DOCUMENT_THUMB_ID:
-	          	//String documentId = uri.getQueryParameter("id");
-	        	String documentId = uri.getLastPathSegment();
-	        	AttachmentInputStream data;
-	        	try {
-	        		data = couchDbConnector.getAttachment(documentId,
-                        "thumb.jpg");
-	    
-	        	} catch (DocumentNotFoundException e) {
-	        		return null;
-	        	}
-	        	
-	        	/*
-	        	byte[] dataBytes = null;
-	        	try {
-	        		dataBytes = IOUtils.toByteArray(data);
-	        	} catch (IOException e1) {
-	        		// TODO Auto-generated catch block
-	        		e1.printStackTrace();
-	        	}
-	        	*/
-	        	
-	        	byte[] dataBytes = {'a','a'};
-	        	
-
-	        	if(dataBytes != null){
-	        		//need to read data into a byteArray.
-	        		//and then return that byte array.
-	        		//BlobCursor blobCursor = new BlobCursor(new String[] {"image"});
-	        		//blobCursor.addRow(new Object[] { dataBytes } );
-	        		
-	        		//TODO: this is a terrible dirty hack, because I can't understand how to just
-	        		//pass back a blob from the content provider without jumping through tons of hoops
-	        		//AbstractCursor doesn't implement getBlob, so MatrixCursor won't grant access to an assigned blob
-	        		BlobCursor blobCursor = new BlobCursor();
-	        		blobCursor.setBlob(dataBytes);
-	        		queryCursor = blobCursor;
-	        	}
-
-
+	        	documentId = uri.getLastPathSegment();
+	        	queryCursor = this.getBlobCursorForAttachment(documentId, "medium.jpg");
 	        	//break; TODO: understand how to return different types of cursors
+	        	break;
+	        	
+	        case DOCUMENT_IMAGE_ID:
+	        	documentId = uri.getLastPathSegment();
+	        	queryCursor = this.getBlobCursorForAttachment(documentId, "medium.jpg");
+	        	
+	        	//break; TODO: understand how to return different types of cursors
+	        	break;
 	    }
    
 	    if(queryCursor == null){
@@ -433,6 +410,37 @@ public class RhusDocumentContentProvider extends TouchDBContentProvider {
 	    
 	    return queryCursor;
 	    
+	}
+	
+	private Cursor getBlobCursorForAttachment(String documentId, String attachmentName){
+		AttachmentInputStream data;
+    	try {
+    		data = couchDbConnector.getAttachment(documentId,
+                attachmentName);
+    		Log.v(TAG, data.toString());
+
+    	} catch (DocumentNotFoundException e) {
+    		return null;
+    	}
+    	
+    	byte[] dataBytes = null;
+    	//String  dataBytes = null;
+    	try {
+    		dataBytes = IOUtils.toByteArray(data);
+    	} catch (IOException e1) {
+    		// TODO Auto-generated catch block
+    		e1.printStackTrace();
+    	}	        	
+
+    	if(dataBytes != null){
+    		//TODO: this is a terrible dirty hack, because I can't understand how to just
+    		//pass back a blob from the content provider without jumping through tons of hoops
+    		//AbstractCursor doesn't implement getBlob, so MatrixCursor won't grant access to an assigned blob
+    		BlobCursor blobCursor = new BlobCursor();
+    		blobCursor.setBlob(dataBytes);
+    		return blobCursor;
+    	}
+    	return null;
 	}
 
 	@Override

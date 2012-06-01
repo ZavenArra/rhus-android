@@ -134,12 +134,19 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 				Cursor thumbCursor  =  managedQuery(thumbUri, null, null, null, null);
 				
 				
+				boolean thumbSet = false;
 				if(thumbCursor != null && thumbCursor.getCount() != 0){
 					thumbCursor.moveToFirst();
-					ByteArrayInputStream is = new ByteArrayInputStream( thumbCursor.getBlob(thumbCursor.getColumnIndexOrThrow("image")));
-					Drawable drw = Drawable.createFromStream(is, "thumbnailImage");
-					thumbnail.setImageDrawable(drw);
-				} else {
+					byte[] thumbData = thumbCursor.getBlob(thumbCursor.getColumnIndexOrThrow("image"));
+					if(thumbData != null){
+						ByteArrayInputStream is = new ByteArrayInputStream(thumbData );
+						Drawable drw = Drawable.createFromStream(is, "thumbnailImage");
+						thumbnail.setImageDrawable(drw);
+						thumbSet = true;
+					}
+				} 
+				
+				if(thumbSet == false) {
 					thumbnail.setImageDrawable(null);
 				}
 				
@@ -163,6 +170,9 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 		}
 	}
 	
+	
+	
+	/*
 	private class QueryMapPointsTask extends AsyncTask<RhusMapActivity, Void, Void> {
 
 
@@ -201,6 +211,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 		}
 
 	}
+	*/
 	
 	private class MapDataObserver extends DataSetObserver {
 
@@ -379,12 +390,72 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 	private void updateMapPoints(){
 	
 		if(!updatingMapPoints){
-			QueryMapPointsTask queryMapPointsTask = new QueryMapPointsTask();
-			queryMapPointsTask.execute(this);
+			//QueryMapPointsTask queryMapPointsTask = new QueryMapPointsTask();
+			//queryMapPointsTask.execute(this);
+			queryMapPoints(); 
 			updatingMapPoints = true;
 			Log.v(TAG, "updatingMapPoints TRUE");
 
 		}
+	}
+	
+    private Thread worker;
+
+	private void queryMapPoints() {
+		   worker = new Thread(new Runnable(){
+
+	            private void updateUI(final boolean done)
+	            {
+	                if(worker.isInterrupted()){
+	                    return;
+	                }
+	                runOnUiThread(new Runnable(){
+
+	                    public void run()
+	                    {
+	                        // Update view and remove loading spinner etc...
+	                    	clearMapPoints();
+	            			
+	            			try {
+	            				updateOverlays();
+	            			} catch (JsonProcessingException e) {
+	            				// TODO Auto-generated catch block
+	            				e.printStackTrace();
+	            			} catch (IOException e) {
+	            				// TODO Auto-generated catch block
+	            				e.printStackTrace();
+	            			}
+	            			Log.v(TAG, "updatingMapPoints ");
+	            			updatingMapPoints = false;
+	                    }
+	                });
+	            }
+
+	            public void run()
+	            {
+	                Log.d(TAG, "Thread run()");
+	                updateUI(getMapPoints());         
+	            }
+	            
+	            private boolean getMapPoints() {
+	                Log.v(TAG, "Setting document cursor asynchronously");
+	    			//RhusMapActivity mapActivity = mapActivities[0];
+	    			
+	    			Uri workingSetUri = ((RhusApplication) getApplicationContext()).rhusDataSet.getQueryUri();
+	    			
+	    			documentsCursor  = managedQuery(workingSetUri, null, null, null, null);
+	    	
+	    			if(documentsCursor != null){
+	    				documentsCursor.setNotificationUri(getBaseContext().getContentResolver(), workingSetUri);
+	    				documentsCursor.registerDataSetObserver(new MapDataObserver());
+	    			}
+	                
+	    			return true;
+	            }
+
+	        });
+	        worker.start(); 
+		
 	}
 	
 	private void clearMapPoints(){
@@ -399,10 +470,10 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 		Log.i(TAG, "onStart");
        
         mapOverlays = mapView.getOverlays();
-        QueryMapPointsTask queryMapPointsTask = new QueryMapPointsTask();
-        queryMapPointsTask.execute(this);
-   
- 	}
+       // QueryMapPointsTask queryMapPointsTask = new QueryMapPointsTask();
+       // queryMapPointsTask.execute(this);
+        queryMapPoints();
+	}
 	
 	protected void updateOverlays() throws JsonProcessingException, IOException{
 		Log.v(TAG, "Updating Overlays");
@@ -420,7 +491,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 			
 			do {
 				String id = documentsCursor.getString(0);				
-				Log.v(TAG, "Loading geopoint from cursor: "+id);
+				//Log.v(TAG, "Loading geopoint from cursor: "+id);
 
 				String documentJson = documentsCursor.getString(1);	
 			//	JsonNode documentObject = mapper.readTree(document);
@@ -428,7 +499,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 				
 				
 				if(!loadedMapPoints.containsKey(id) && document.latitude != null ){
-					Log.v(TAG, "Adding geopoint from cursor");
+					//Log.v(TAG, "Adding geopoint from cursor");
 					int latitude = (int) (new Double(document.latitude) *1000000);					
 					int longitude = (int) ( new Double(document.longitude) *1000000);
 					if(latitude == 0 && longitude == 0){
@@ -689,6 +760,7 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 
 				ByteArrayOutputStream stream = new ByteArrayOutputStream() ;
 				thumb.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+				long len = stream.size();
 			    byte[] thumbData = stream.toByteArray();
 
 				ByteArrayOutputStream stream2 = new ByteArrayOutputStream() ;

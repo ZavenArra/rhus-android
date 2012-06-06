@@ -5,3 +5,4 @@ Couchbase/
 .metadata
 src/net/winterroot/android/rhus/configuration/
 gen
+dist

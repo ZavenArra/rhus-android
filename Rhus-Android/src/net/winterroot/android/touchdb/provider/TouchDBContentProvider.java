@@ -1,40 +1,17 @@
 package net.winterroot.android.touchdb.provider;
 
 import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.http.conn.ClientConnectionManager;
-import org.codehaus.jackson.JsonNode;
 import org.ektorp.CouchDbConnector;
 import org.ektorp.CouchDbInstance;
-import org.ektorp.DbAccessException;
-import org.ektorp.DocumentNotFoundException;
 import org.ektorp.ReplicationCommand;
-import org.ektorp.UpdateConflictException;
-import org.ektorp.ViewQuery;
-import org.ektorp.android.http.AndroidHttpClient;
-import org.ektorp.android.util.EktorpAsyncTask;
 import org.ektorp.http.HttpClient;
 import org.ektorp.impl.StdCouchDbInstance;
-import org.ektorp.support.DesignDocument;
 
-import android.app.AlertDialog;
 import android.content.ContentProvider;
-import android.content.ContentValues;
-import android.content.DialogInterface;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
-import android.content.Context;
-
-import android.database.Cursor;
-import android.net.Uri;
-import android.preference.PreferenceManager;
 import android.util.Log;
-
 
 import com.couchbase.touchdb.TDDatabase;
 import com.couchbase.touchdb.TDServer;
@@ -49,7 +26,7 @@ abstract public class TouchDBContentProvider extends ContentProvider {
 	public static String TAG = "CouchbaseMobileContentProvider";
 	
 	//couch internals
-	protected static ServiceConnection couchServiceConnection = null;
+	protected static final ServiceConnection couchServiceConnection = null;
 	protected static HttpClient httpClient;
 	protected static String host;
 	protected static int port;
@@ -63,8 +40,6 @@ abstract public class TouchDBContentProvider extends ContentProvider {
   
 	abstract public String getBucketName();
 	abstract public String getReplicationUrl();
-		
-	public Object sync;
 
 	public TDServer server = null;
 	public TDDatabase db = null;
@@ -72,7 +47,6 @@ abstract public class TouchDBContentProvider extends ContentProvider {
 	boolean waitingForEktorp = false;
 	boolean ektorpStarted = false;
 
-	
 	{
 		TDURLStreamHandlerFactory.registerSelfIgnoreError();
 	}
@@ -81,40 +55,13 @@ abstract public class TouchDBContentProvider extends ContentProvider {
 	@Override
 	public boolean onCreate() {
     	Log.v(TAG, "On Create Content Provider");
-    	
-    	//sync = new Object();
-    	
+        	
     	startCouchService();    	
     	
     	return true;
 
 	}
-	
-	//Inelegant way to all the service to start synchronously
-	//This content provider shouldn't be on the UI thread anyway,
-	//and should always be CALLED asynchronously, 
-	//so that's why internally we've made it synchronous
-	/*
-	private void waitMonitor(boolean wait){
-		 
-		synchronized(sync) {
-			if(wait){
-				try {
-					Log.v(TAG, "Waiting");
-					sync.wait();
-					Log.v(TAG, "Done Waiting");
-				} catch(InterruptedException e) {
-					System.out.println("InterruptedException caught");
-				} 
-			} else {
-				Log.v(TAG, "Got Notified");
-				sync.notify();
-			}
-		}
-	}
-	
-	*/
-	
+		
 	protected boolean startCouchService(){
 		String filesDir = getContext().getFilesDir().getAbsolutePath();
 		try {
@@ -125,7 +72,7 @@ abstract public class TouchDBContentProvider extends ContentProvider {
 
 		db = server.getDatabaseNamed(getBucketName());
 
-		TDView allDocsView = db.getViewNamed(String.format("%s/%s", "test", "view"));
+		final TDView allDocsView = db.getViewNamed(String.format("%s/%s", "test", "view"));
 		allDocsView.setMapReduceBlocks(new TDViewMapBlock() {
             
             public void map(Map<String, Object> document, TDViewMapEmitBlock emitter) {
@@ -141,36 +88,6 @@ abstract public class TouchDBContentProvider extends ContentProvider {
 		startEktorp();
 		
 		return true;
-	}
-
-	protected boolean ensureCouchServiceStarted(){
-		Log.v(TAG, "Ensuring couch service");
-		//This doesn't matter now, because we are just going to start synchronously in onCreate()
-		
-		//Since this will be called asyncronously, will need an approach that pauses if the provider is currently starting up.
-
-		//TODO: this is not correct.
-		/*
-		if(!ektorpStarted){
-			try {
-				waitingForEktorp = true;
-				synchronized(sync) {
-					sync.wait();
-				}
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-	
-			if(couchDbConnector == null){
-        		throw new RuntimeException(); 
-			}
-		
-   		}
-   		*/
-		
-		return true;	
-
 	}
 	
 	protected void startEktorp() {

@@ -2,9 +2,6 @@ package net.winterroot.android.rhus.provider;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Array;
-import java.text.Format;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -14,9 +11,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.JsonProcessingException;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.util.StdDateFormat;
 import org.codehaus.jackson.node.JsonNodeFactory;
 import org.codehaus.jackson.node.ObjectNode;
@@ -25,50 +19,42 @@ import org.ektorp.ComplexKey;
 import org.ektorp.DocumentNotFoundException;
 import org.ektorp.UpdateConflictException;
 import org.ektorp.ViewQuery;
-import org.ektorp.ViewResult;
-import org.ektorp.ViewResult.Row;
-import org.ektorp.support.DesignDocument;
 
 import com.couchbase.touchdb.TDView;
 import com.couchbase.touchdb.TDViewMapBlock;
 import com.couchbase.touchdb.TDViewMapEmitBlock;
 import com.couchbase.touchdb.TDViewReduceBlock;
 
-import net.winterroot.android.rhus.*;
 import net.winterroot.android.rhus.configuration.RhusConfiguration;
 import net.winterroot.android.touchdb.provider.BlobCursor;
 import net.winterroot.android.touchdb.provider.CouchCursor;
 import net.winterroot.android.touchdb.provider.TouchDBContentProvider;
-import net.winterroot.android.touchdb.provider.CouchbaseMobileEktorpAsyncTask;
 
-import android.content.ContentUris;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.UriMatcher;
-import android.database.AbstractCursor;
 import android.database.Cursor;
 import android.net.Uri;
-import android.text.format.DateFormat;
 import android.util.Log;
-import android.database.MatrixCursor;
 
 public class RhusDocumentContentProvider extends TouchDBContentProvider {
 	
 	private static final String TAG = "RhusDocumentContentProvider";
 	
+	/*
     private static final String FILE_CACHE_DIR =
     		"/data/data/net.winterroot.net.android.rhus/file_cache";
-    
+    */
+	
     //Change this manually to build different versions of the app, or set up build targets using ant, etc.
-    private static String REPLICATION_URL = RhusConfiguration.REPLICATION_URL;
-    private static String BUCKET_NAME = "documents";
+    private static final String REPLICATION_URL = RhusConfiguration.REPLICATION_URL;
+    private static final String BUCKET_NAME = "documents";
 	
     private static final int DOCUMENTS = 1;			  //get all documents (possibly filtered)
     private static final int DOCUMENT_ID = 2;		  //get document by id
     private static final int DOCUMENT_THUMB_ID = 3;   //get document thumb by id
     private static final int DOCUMENT_IMAGE_ID = 4;   //get document image by id
     private static final int USER_DOCUMENTS = 5;
-    private static final int USER_IDENTIFIER = 6;
+    //private static final int USER_IDENTIFIER = 6;
     private static final int PROJECTS = 7;
     
     //TODO: This design document should be keep as a JSON text file, the below is not a superb way to handle things
@@ -78,10 +64,11 @@ public class RhusDocumentContentProvider extends TouchDBContentProvider {
 	public static final String allDocsViewName = "allDocuments";
 	public static final String projectsViewName = "projects";
 
+	/*
     private static final String replicationFilter = "  function(doc, req) {"+
     		  "return \"_design/\" !== doc._id.substr(0, 8)" +
     		  "}";
-
+	 */
     
     private static UriMatcher sUriMatcher;
 	
@@ -119,7 +106,12 @@ public class RhusDocumentContentProvider extends TouchDBContentProvider {
 
 	@Override
 	public String getType(Uri uri) {
-		return "vnd.android.cursor.dir/vnd.rhus.document";
+		int match = sUriMatcher.match(uri);
+		if(match == PROJECTS){
+			return "vnd.android.cursor.dir/vnd.rhus.project";
+		} else {
+			return "vnd.android.cursor.dir/vnd.rhus.document";
+		}
 	}
 
 	/*
@@ -131,10 +123,9 @@ public class RhusDocumentContentProvider extends TouchDBContentProvider {
 	 */
 	
 	public Uri insert(Uri uri, ContentValues values) {
-		
-		ensureCouchServiceStarted();
-		
+				
 	    int match = sUriMatcher.match(uri);
+	    Uri returnUri = null;
 	    switch (match) {
 	    case DOCUMENTS:
 
@@ -143,8 +134,6 @@ public class RhusDocumentContentProvider extends TouchDBContentProvider {
 	    	documentNode.put("longitude", values.getAsDouble("longitude").toString() );
 	    	documentNode.put("created_at", new StdDateFormat().format(new Date()) );
 	    	documentNode.put("deviceuser_identifier", values.getAsString("deviceuser_identifier"));
-	    	//documentNode.put("thumb", JsonNodeFactory.instance.binaryNode(values.getAsByteArray("thumb")));
-	    	//documentNode.put("medium",JsonNodeFactory.instance.binaryNode(values.getAsByteArray("medium")));
 
 	    	//Skip matching the URI for the moment
 
@@ -169,22 +158,17 @@ public class RhusDocumentContentProvider extends TouchDBContentProvider {
 
 	    	String _rev =couchDbConnector.createAttachment(id, documentNode.get("_rev").getTextValue(), a);
 	    	
-	    	byte[] medium = values.getAsByteArray("medium");
-	    	int ln = medium.length;
 	    	a = new AttachmentInputStream("medium.jpg",
 	    			new ByteArrayInputStream(values.getAsByteArray("medium")),
 	    			"image/jpeg");
 	    	
 	    	couchDbConnector.createAttachment(id, _rev, a);
-
-	    	
-	    	
-	    	//long id = 0;  //Not the id!!
-	    	Log.d(TAG, "FIX: NOT THE ID");
+	    		    	
 	    	Uri documentUri = RhusDocument.CONTENT_URI.buildUpon().appendPath(id).build();
 	    	getContext().getContentResolver().notifyChange(documentUri, null);
-	    	//TODO: This should return the Content Provider Uri for the newly created item 
-	    	return documentUri;
+	    	returnUri = documentUri;
+	    	break;
+	    	
 	    case PROJECTS:
 	    	ObjectNode projectNode = JsonNodeFactory.instance.objectNode();
 	    	projectNode.put("project", values.getAsString("project"));
@@ -197,7 +181,7 @@ public class RhusDocumentContentProvider extends TouchDBContentProvider {
 	    	break;
 	    }
 	    
-	    return null;
+	    return returnUri;
 	}
 	
 	@Override 
@@ -217,13 +201,10 @@ public class RhusDocumentContentProvider extends TouchDBContentProvider {
 		Log.v(TAG, "RHUS initialization");
 
 		//Java Views
-		
-		 final SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yy");
-		 final SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+		final SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yy");
+		final SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
 
-
-		
-		TDView allDocsView = db.getViewNamed(String.format("%s/%s", dDocName, allDocsViewName));
+		final TDView allDocsView = db.getViewNamed(String.format("%s/%s", dDocName, allDocsViewName));
 		allDocsView.setMapReduceBlocks(new TDViewMapBlock() {
 			 
 			public void map(Map<String, Object> document,
@@ -263,7 +244,7 @@ public class RhusDocumentContentProvider extends TouchDBContentProvider {
 
 		
 		
-		 TDView userDocsMapView = db.getViewNamed(String.format("%s/%s", dDocName, userDocsViewName));
+		 final TDView userDocsMapView = db.getViewNamed(String.format("%s/%s", dDocName, userDocsViewName));
 		 userDocsMapView.setMapReduceBlocks(new TDViewMapBlock() {
 				 
 				public void map(Map<String, Object> document,
@@ -294,14 +275,11 @@ public class RhusDocumentContentProvider extends TouchDBContentProvider {
 					key.add((String) document.get("created_at"));
 					emitter.emit(key, value);
 				
-					//    private static final String userDocsMapFunction = "function(doc) {  date = new Date(doc.created_at.substr(0,19)); niceDate = (date.getMonth()+1)+\"/\"+date.getDate()+\"/\"+date.getFullYear();
-//emit([doc.deviceuser_identifier, doc.created_at],{'id':doc._id, 'thumb':doc.thumb, 'medium':doc.medium, 'latitude':doc.latitude, 'longitude':doc.longitude, 'reporter':doc.reporter, 'comment':doc.comment, 'created_at':niceDate, 'deviceuser_identifier':doc.deviceuser_identifier } );}";
-
 				}
 			  }, null, "1.0");
 
 
-		 TDView projectsMapView = db.getViewNamed(String.format("%s/%s", dDocName, projectsViewName));
+		 final TDView projectsMapView = db.getViewNamed(String.format("%s/%s", dDocName, projectsViewName));
 		 projectsMapView.setMapReduceBlocks(new TDViewMapBlock() {
 				 
 				public void map(Map<String, Object> document,
@@ -326,14 +304,12 @@ public class RhusDocumentContentProvider extends TouchDBContentProvider {
 	@Override
 	public Cursor query(Uri uri, String[] projection, String selection,
 			String[] selectionArgs, String sortOrder) {
-
-		ensureCouchServiceStarted();
 		
     	Log.v(TAG, "Content provider query");
 
     	Cursor queryCursor = null;
-	    ViewQuery viewQuery;
-	    String documentId;
+	    ViewQuery viewQuery = null;
+	    String documentId = null;
 	    
 	    int match = sUriMatcher.match(uri);
 	    switch (match) {
@@ -357,8 +333,8 @@ public class RhusDocumentContentProvider extends TouchDBContentProvider {
 	        		throw new RuntimeException();
 	        	}
 	        	
-	        	ComplexKey startKey = ComplexKey.of(deviceuser_identifier, new HashMap());
-	        	ComplexKey endKey = ComplexKey.of(deviceuser_identifier);
+	        	final ComplexKey startKey = ComplexKey.of(deviceuser_identifier, new HashMap<String, String>() );
+	        	final ComplexKey endKey = ComplexKey.of(deviceuser_identifier);
 	        	viewQuery.startKey(startKey);
 	        	viewQuery.endKey(endKey);
 	        	viewQuery.descending(true);
@@ -368,7 +344,7 @@ public class RhusDocumentContentProvider extends TouchDBContentProvider {
 	        	
 	        case PROJECTS:
 	        	viewQuery = new ViewQuery().designDocId(dDocId).viewName(projectsViewName);
-	          	String project = uri.getQueryParameter("project");
+	          	final String project = uri.getQueryParameter("project");
 	          	if(project==null){
 	        		Log.e(TAG, "PROJECTS Uri called without project");
 	        		//TODO: Improve exception handling
@@ -382,7 +358,7 @@ public class RhusDocumentContentProvider extends TouchDBContentProvider {
 	        	
 	        case DOCUMENT_THUMB_ID:
 	        	documentId = uri.getLastPathSegment();
-	        	queryCursor = this.getBlobCursorForAttachment(documentId, "medium.jpg");
+	        	queryCursor = this.getBlobCursorForAttachment(documentId, "thumb.jpg");
 	        	//break; TODO: understand how to return different types of cursors
 	        	break;
 	        	

@@ -6,9 +6,5 @@
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
 	<classpathentry kind="lib" path="libs/commons-compress-1.0.jar"/>
 	<classpathentry kind="lib" path="libs/commons-io-2.0.1.jar"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/TouchDB-Android"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/TouchDB-Android-Ektorp"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/TouchDB-Android-JavaScript"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/TouchDB-Android-Listener"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

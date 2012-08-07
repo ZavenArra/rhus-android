@@ -773,13 +773,14 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 				
 				values.put("deviceuser_identifier", ((RhusApplication) getApplicationContext()).rhusDevice.getDeviceId());
 				
-				getContentResolver().insert(RhusDocument.CONTENT_URI, values);
+				Uri newDocumentURI = null;
+				newDocumentURI = getContentResolver().insert(RhusDocument.CONTENT_URI, values);
 				
 				
-				/*TODO: Skipping for now
-				Intent intent = new Intent("net.winterroot.android.rhus.action.SUBMITFORM");
-				startActivity(intent);
-				*/
+				//Intent intent = new Intent("net.winterroot.android.rhus.action.SUBMITFORM");
+				//Get the new ID, and send it to the INTENT
+				//startActivity(intent);
+			
 
 
 			} else if (resultCode == RESULT_CANCELED) {
@@ -787,6 +788,9 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 			} else {
 				Toast.makeText(this, "Picture was not taken", Toast.LENGTH_SHORT);
 			}
+		} else {
+			Toast.makeText(this, "Lost that one....", Toast.LENGTH_LONG);
+
 		}
 		lockInterface = false;
 

@@ -53,7 +53,7 @@ public class Rhimage {
 	        // First, get the dimensions of the image
 	        Options options = new Options();
 	        options.inJustDecodeBounds = true;
-	        BitmapFactory.decodeFile(filePath, options);
+	        BitmapFactory.decodeFile(filePath, options);  //Reads options for the file
 	        double sampleSize = 0;
 	        // Only scale if we need to
 	        // (16384 buffer for img processing)
@@ -102,8 +102,8 @@ public class Rhimage {
             int originy = 0;
             int width = bitMapImage.getWidth() ;
             int height = bitMapImage.getHeight() ; 
-            float ratio = targetWidth / targetHeight;
-            float reverseRatio = targetHeight / targetWidth;
+            float ratio = (float) targetWidth / (float) targetHeight;
+            float reverseRatio = (float) targetHeight / (float) targetWidth;
             //use smaller dimension
             if(width > height){
             	targetHeight = height;
@@ -117,7 +117,7 @@ public class Rhimage {
            	originy = (bitMapImage.getHeight() - targetHeight) / 2;
            	
            	//TODO: getting cropped to squares even on medium size.
-           //	Log.v(TAG, Integer.toString() )
+            //Log.v(TAG, Integer.toString() )
             bitMapImage = Bitmap.createBitmap(bitMapImage, originx, originy, targetWidth, targetHeight);
 
 	        

@@ -170,49 +170,6 @@ public class RhusMapActivity extends MapActivity implements LocationListener {
 		}
 	}
 	
-	
-	
-	/*
-	private class QueryMapPointsTask extends AsyncTask<RhusMapActivity, Void, Void> {
-
-
-		@Override
-		protected Void doInBackground(RhusMapActivity... mapActivities) {
-			Log.v(TAG, "Setting document cursor asynchronously");
-			RhusMapActivity mapActivity = mapActivities[0];
-			
-			Uri workingSetUri = ((RhusApplication) getApplicationContext()).rhusDataSet.getQueryUri();
-			
-			documentsCursor  = managedQuery(workingSetUri, null, null, null, null);
-	
-			if(documentsCursor != null){
-				documentsCursor.setNotificationUri(mapActivity.getBaseContext().getContentResolver(), workingSetUri);
-				documentsCursor.registerDataSetObserver(new MapDataObserver());
-			}
-				
-			return null;
-		}
-		
-		protected void onPostExecute(Void result) {
-			
-			clearMapPoints();
-			
-			try {
-				updateOverlays();
-			} catch (JsonProcessingException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			Log.v(TAG, "updatingMapPoints FALSE");
-			updatingMapPoints = false;
-		}
-
-	}
-	*/
-	
 	private class MapDataObserver extends DataSetObserver {
 
 		@Override

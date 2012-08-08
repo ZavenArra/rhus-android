@@ -79,12 +79,24 @@ public class Rhimage {
 	            try {
 	                options.inSampleSize = (int) sampleSize;
 	                bitMapImage = BitmapFactory.decodeFile(filePath, options);
-	                if(orientation > 0){
+	                //The funny thing here is that just doing orientation * 90 doesn't 
+	                //seem to work as you might expect - it actually flips the image
+	                //also, originally we didn't multiply by 90 and didn't have crashes,
+	                //so either the orientation value has changed from 360 degrees to -1,0,1
+	                //or this didn't cause an error in the past because we didn't realize 
+	                //orientation could have a negative value.  This needs to be tested on 
+	                //a variety of devices.
+	                switch(orientation){
+	                case -1:
 	                	 Matrix matrix = new Matrix();
-	                     matrix.postRotate(orientation);
+	                     matrix.postRotate(90);
 
 	                     bitMapImage = Bitmap.createBitmap(bitMapImage, 0, 0, bitMapImage.getWidth(),
 	                    		 bitMapImage.getHeight(), matrix, true);	                   
+	                     break;
+	                 default:
+	                	 //no nothing
+	                	 break;
 	                }
 
 	                break;
@@ -113,10 +125,17 @@ public class Rhimage {
             	targetHeight = (int) (targetWidth * reverseRatio);
             }
             
+            //adjust back when the outputs are too big
+            if(targetWidth > width){
+            	targetWidth = width;
+            } 
+            if(targetHeight > height){
+            	targetHeight = height;
+            }
+            
            	originx = (bitMapImage.getWidth() - targetWidth) / 2;
            	originy = (bitMapImage.getHeight() - targetHeight) / 2;
            	
-           	//TODO: getting cropped to squares even on medium size.
             //Log.v(TAG, Integer.toString() )
             bitMapImage = Bitmap.createBitmap(bitMapImage, originx, originy, targetWidth, targetHeight);
 

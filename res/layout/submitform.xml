@@ -129,4 +129,23 @@
         android:background="@null"
         android:src="@drawable/unselected_fruit" />
 
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/name"
+        android:layout_alignParentTop="true"
+        android:text="Name"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/comments"
+        android:layout_below="@+id/name"
+        android:layout_marginTop="14dp"
+        android:text="Comments"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
 </RelativeLayout>
